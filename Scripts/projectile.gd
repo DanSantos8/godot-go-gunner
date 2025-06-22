@@ -1,0 +1,29 @@
+extends RigidBody2D
+
+@onready var sprite: AnimatedSprite2D = $ProjectileAnimation
+# @onready var explosion_area
+
+# configs
+@export var explosion_radius: float = 50.0
+@export var base_damage: float = 100.0
+@export var spin_speed: float = 20 
+@export var rotation_speed: float = 5.0
+
+func _ready() -> void:
+	angular_velocity = spin_speed
+		
+func setup_shot(angle: float, power: float, facing_left: bool):
+	var cos_value = cos(angle)
+	var sin_value = sin(angle)
+	var velocity_magnitude = power * 12
+		
+	if (facing_left):
+		cos_value = -cos_value
+
+	var initial_velocity = Vector2(cos_value * velocity_magnitude,  sin_value * velocity_magnitude)
+	
+	linear_velocity = initial_velocity
+		
+
+func destroy_terrain():
+	print("entrou")

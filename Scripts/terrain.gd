@@ -5,13 +5,14 @@ extends StaticBody2D
 @onready var terrain_collision = $TerrainCollision
 
 func print_debug_info():
-	print("Pontos do terreno visual: ", terrain_visual.polygon.size())
-	print("Pontos da colisão: ", terrain_collision.polygon.size())
+	pass
+	# print("Pontos do terreno visual: ", terrain_visual.polygon.size())
+	# print("Pontos da colisão: ", terrain_collision.polygon.size())
 
 	# ADICIONE ESSAS LINHAS:
-	print("Collision disabled? ", terrain_collision.disabled)
-	print("Primeiro ponto colisão: ", terrain_collision.polygon[0])
-	print("Último ponto colisão: ", terrain_collision.polygon[-1])
+	# print("Collision disabled? ", terrain_collision.disabled)
+	# print("Primeiro ponto colisão: ", terrain_collision.polygon[0])
+	# print("Último ponto colisão: ", terrain_collision.polygon[-1])
 
 
 func _ready():
@@ -45,8 +46,8 @@ func create_closed_polygon(curve_points: PackedVector2Array) -> PackedVector2Arr
 	var last_point = curve_points[-1]
 	var first_point = curve_points[0]
 
-	points.append(Vector2(last_point.x, 500))  
-	points.append(Vector2(first_point.x, 500)) 
+	points.append(Vector2(last_point.x, 12))  
+	points.append(Vector2(first_point.x, 12)) 
 
 	return points
 
@@ -57,3 +58,89 @@ func setup_terrain_texture():
 	terrain_visual.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	terrain_visual.texture_scale = Vector2(2, 2)
 	terrain_visual.antialiased = true
+	
+func apply_destruction(position: Vector2, destruction_data: DestructionData):
+	print("Aplicando destruição na posição: ", position)
+	match destruction_data.type:
+		DestructionData.DestructionType.CIRCULAR:
+			_destroy_circular(position, destruction_data)
+		_:
+			_destroy_circular(position, destruction_data)
+			
+func _destroy_circular(pos: Vector2, data: DestructionData):
+	print("Destruindo na posição: ", pos, " com raio: ", data.radius)
+	
+	# Converte posição global para local
+	var local_pos = to_local(pos)
+	
+	# Cria círculo simples
+	var circle = []
+	for i in range(16):
+		var angle = i * 2.0 * PI / 16
+		var point = local_pos + Vector2(cos(angle), sin(angle)) * data.radius
+		circle.append(point)
+	
+	# Pega o terreno atual
+	var current_polygon = terrain_visual.polygon
+	
+	# Faz o "buraco"
+	var result = Geometry2D.clip_polygons(current_polygon, circle)
+	
+	# Atualiza com TODOS os fragmentos
+	if result.size() > 0:
+		_update_terrain_with_fragments(result, terrain_visual, terrain_collision)
+
+func _update_terrain_with_fragments(fragments: Array, visual_node: Polygon2D, collision_node: CollisionPolygon2D):
+	# Encontra o maior fragmento (ilha principal)
+	var main_fragment = _get_largest_fragment(fragments)
+	
+	# Atualiza o terreno principal
+	visual_node.polygon = main_fragment
+	collision_node.polygon = main_fragment
+	
+	# Cria ilhas flutuantes para os outros fragmentos
+	for i in range(fragments.size()):
+		if fragments[i] != main_fragment and fragments[i].size() > 3: # Mínimo de 3 pontos
+			_create_floating_island(fragments[i])
+
+func _get_largest_fragment(fragments: Array) -> PackedVector2Array:
+	var largest = fragments[0]
+	var largest_area = _calculate_area(largest)
+	
+	for fragment in fragments:
+		var area = _calculate_area(fragment)
+		if area > largest_area:
+			largest = fragment
+			largest_area = area
+	
+	return largest
+
+func _calculate_area(polygon: PackedVector2Array) -> float:
+	var area = 0.0
+	for i in range(polygon.size()):
+		var j = (i + 1) % polygon.size()
+		area += polygon[i].x * polygon[j].y - polygon[j].x * polygon[i].y
+	return abs(area) * 0.5
+
+func _create_floating_island(fragment: PackedVector2Array):
+	# Cria nova ilha flutuante
+	var island = StaticBody2D.new()
+
+	# Visual da ilha
+	var visual = Polygon2D.new()
+	visual.polygon = fragment
+	visual.texture = terrain_visual.texture # Copia textura original
+	visual.texture_scale = terrain_visual.texture_scale
+
+	# Colisão da ilha
+	var collision = CollisionPolygon2D.new()
+	collision.polygon = fragment
+
+	# Monta a estrutura
+	island.add_child(visual)
+	island.add_child(collision)
+
+	# Adiciona ao mesmo container
+	add_child(island)
+
+	print("Nova ilha flutuante criada com ", fragment.size(), " pontos")

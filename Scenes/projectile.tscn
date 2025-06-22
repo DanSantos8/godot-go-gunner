@@ -1,0 +1,46 @@
+[gd_scene load_steps=8 format=3 uid="uid://qylr5iaon7m6"]
+
+[ext_resource type="Script" uid="uid://bo4qkjowyoc6j" path="res://Scripts/projectile.gd" id="1_yr2qt"]
+[ext_resource type="Texture2D" uid="uid://ccrx1s7dw7l0u" path="res://Sprites/Weapons/all.png" id="2_tl4hk"]
+[ext_resource type="Script" uid="uid://cdr2wuqpym887" path="res://Scripts/explosion_area.gd" id="3_tl4hk"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jlqi0"]
+atlas = ExtResource("2_tl4hk")
+region = Rect2(0, 497, 48, 47)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_7gowh"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jlqi0")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_a5nw3"]
+radius = 5.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_d4467"]
+
+[node name="Projectile" type="RigidBody2D"]
+collision_layer = 2
+collision_mask = 9
+script = ExtResource("1_yr2qt")
+
+[node name="ProjectileAnimation" type="AnimatedSprite2D" parent="."]
+position = Vector2(9.53674e-07, 9.53674e-07)
+scale = Vector2(0.457447, 0.457447)
+sprite_frames = SubResource("SpriteFrames_7gowh")
+
+[node name="ProjectileCollision" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_a5nw3")
+
+[node name="ExplosionArea" type="Area2D" parent="."]
+script = ExtResource("3_tl4hk")
+
+[node name="ExplosionCollision" type="CollisionShape2D" parent="ExplosionArea"]
+shape = SubResource("CircleShape2D_d4467")
+
+[connection signal="body_entered" from="ExplosionArea" to="ExplosionArea" method="_on_body_entered"]
