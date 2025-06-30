@@ -12,7 +12,6 @@ func _ready():
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.name == "Terrain":
-		
 		var terrain_container = get_tree().get_first_node_in_group("terrain_manager")
 		
 		if terrain_container:
@@ -20,4 +19,4 @@ func _on_body_entered(body: Node2D) -> void:
 		else:
 			print("TerrainContainer não encontrado!")
 		
-		queue_free()
+		get_parent().queue_free()

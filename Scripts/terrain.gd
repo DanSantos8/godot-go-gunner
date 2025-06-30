@@ -32,12 +32,9 @@ func create_curved_terrain():
 	terrain_collision.polygon = terrain_points
 	
 	terrain_collision.set_polygon(terrain_points)
-	call_deferred("_on_collision_ready")
 	
 	terrain_visual.color = Color.WHITE
-	
-	print(terrain_collision.polygon)
-	
+		
 func create_closed_polygon(curve_points: PackedVector2Array) -> PackedVector2Array:
 	var points = PackedVector2Array()
 
@@ -60,16 +57,13 @@ func setup_terrain_texture():
 	terrain_visual.antialiased = true
 	
 func apply_destruction(position: Vector2, destruction_data: DestructionData):
-	print("Aplicando destruição na posição: ", position)
 	match destruction_data.type:
 		DestructionData.DestructionType.CIRCULAR:
 			_destroy_circular(position, destruction_data)
 		_:
 			_destroy_circular(position, destruction_data)
 			
-func _destroy_circular(pos: Vector2, data: DestructionData):
-	print("Destruindo na posição: ", pos, " com raio: ", data.radius)
-	
+func _destroy_circular(pos: Vector2, data: DestructionData):	
 	# Converte posição global para local
 	var local_pos = to_local(pos)
 	
@@ -96,12 +90,12 @@ func _update_terrain_with_fragments(fragments: Array, visual_node: Polygon2D, co
 	
 	# Atualiza o terreno principal
 	visual_node.polygon = main_fragment
-	collision_node.polygon = main_fragment
+	collision_node.call_deferred("set_polygon", main_fragment)
 	
 	# Cria ilhas flutuantes para os outros fragmentos
 	for i in range(fragments.size()):
 		if fragments[i] != main_fragment and fragments[i].size() > 3: # Mínimo de 3 pontos
-			_create_floating_island(fragments[i])
+			call_deferred("_create_floating_island", fragments[i])
 
 func _get_largest_fragment(fragments: Array) -> PackedVector2Array:
 	var largest = fragments[0]
@@ -142,5 +136,5 @@ func _create_floating_island(fragment: PackedVector2Array):
 
 	# Adiciona ao mesmo container
 	add_child(island)
-
-	print("Nova ilha flutuante criada com ", fragment.size(), " pontos")
+	
+	island.global_position = global_position

@@ -23,7 +23,3 @@ func setup_shot(angle: float, power: float, facing_left: bool):
 	var initial_velocity = Vector2(cos_value * velocity_magnitude,  sin_value * velocity_magnitude)
 	
 	linear_velocity = initial_velocity
-		
-
-func destroy_terrain():
-	print("entrou")

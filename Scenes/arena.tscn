@@ -28,7 +28,7 @@ curve = SubResource("Curve2D_1v1nj")
 polygon = PackedVector2Array(-18, -16, -31, -9, -24, -31)
 
 [node name="Player" parent="." instance=ExtResource("2_nnts3")]
-position = Vector2(739, 521)
+position = Vector2(742, 526)
 
 [node name="Projectile" parent="." instance=ExtResource("6_csrox")]
 gravity_scale = 1.5
