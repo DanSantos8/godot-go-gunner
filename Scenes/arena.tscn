@@ -1,8 +1,12 @@
-[gd_scene load_steps=5 format=3 uid="uid://bdcpi0ubabcmf"]
+[gd_scene load_steps=9 format=3 uid="uid://bdcpi0ubabcmf"]
 
+[ext_resource type="Script" uid="uid://bapnr58di4w2a" path="res://Scripts/Battle/battle.gd" id="1_1v1nj"]
 [ext_resource type="Script" uid="uid://lhwmab1jgm8r" path="res://Scripts/terrain.gd" id="1_lq7nq"]
 [ext_resource type="PackedScene" uid="uid://d1gje1pn4nn8r" path="res://Scenes/player.tscn" id="2_nnts3"]
+[ext_resource type="Script" uid="uid://7yo73702r1oo" path="res://Scripts/Battle/battle_state_machine.gd" id="5_csrox"]
 [ext_resource type="PackedScene" uid="uid://qylr5iaon7m6" path="res://Scenes/projectile.tscn" id="6_csrox"]
+[ext_resource type="Script" uid="uid://c8fmg1ydeppkq" path="res://Scripts/Battle/states/setup_state.gd" id="6_g2joa"]
+[ext_resource type="Script" uid="uid://cbiwisl7r2x84" path="res://Scripts/Battle/states/turn_start_state.gd" id="7_g2joa"]
 
 [sub_resource type="Curve2D" id="Curve2D_1v1nj"]
 _data = {
@@ -10,7 +14,8 @@ _data = {
 }
 point_count = 15
 
-[node name="Arena" type="Node2D"]
+[node name="Battle" type="Node2D"]
+script = ExtResource("1_1v1nj")
 
 [node name="TerrainContainer" type="Node" parent="."]
 
@@ -32,3 +37,14 @@ position = Vector2(742, 526)
 
 [node name="Projectile" parent="." instance=ExtResource("6_csrox")]
 gravity_scale = 1.5
+
+[node name="BattleStateMachine" type="Node" parent="."]
+script = ExtResource("5_csrox")
+
+[node name="SetupState" type="Node" parent="BattleStateMachine"]
+script = ExtResource("6_g2joa")
+metadata/_custom_type_script = "uid://c8fmg1ydeppkq"
+
+[node name="TurnStartState" type="Node" parent="BattleStateMachine"]
+script = ExtResource("7_g2joa")
+metadata/_custom_type_script = "uid://cbiwisl7r2x84"

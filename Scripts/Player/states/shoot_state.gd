@@ -1,7 +1,8 @@
 class_name ShootState extends State
 
 func enter():
-	print("Shooting!")
+	# print("Shooting!")
+	pass
 	
 func execute(delta):
 	var facing_left: bool = player.animated_sprite.flip_h

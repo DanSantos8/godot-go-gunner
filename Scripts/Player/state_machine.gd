@@ -16,7 +16,7 @@ func init(player_ref: CharacterBody2D):
 	current_state.enter()
 		
 func change_state(new_state_name: String):
-	print("Change State: ", new_state_name)
+	# print("Change State: ", new_state_name)
 	if current_state:
 		current_state.exit()
 	

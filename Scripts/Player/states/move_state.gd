@@ -21,4 +21,5 @@ func execute(delta: float):
 		player.player_flipped.emit(input_direction)
 
 func exit():
-	print("Saindo do Move")
+	# print("Saindo do Move")
+	pass

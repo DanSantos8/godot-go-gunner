@@ -18,8 +18,8 @@ config/icon="res://icon.svg"
 [autoload]
 
 ProjectileManager="*res://Scripts/projectile_manager.gd"
-Battle="*res://Scripts/battle.gd"
 MessageBus="*res://Scripts/message_bus.gd"
+BattleManager="*res://Scripts/Battle/battle_manager.gd"
 
 [input]
 

@@ -6,11 +6,10 @@ class_name AimState extends State
 @export var angle_accumulator = 0.0
 
 func enter():
-	print("Aiming")
+	# print("Aiming")
 	player.player_flipped.connect(_on_character_flip)
 	
 func execute(delta):
-	print('Executando Aiming')
 	var aim_input = Input.get_axis("aim_down", "aim_up")
 	if aim_input == 0:
 		state_machine.change_state('idle')

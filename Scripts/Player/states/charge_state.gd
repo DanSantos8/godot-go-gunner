@@ -5,7 +5,7 @@ var max_power: float = 100.0
 var charge_speed: float = 15
 
 func enter():
-	print("Charging")
+	# print("Charging")
 	current_power = 0.0
 	player.power_bar.value = 0.0
 	
@@ -19,4 +19,5 @@ func execute(delta):
 		player.powerbar_label.set_powerbar_value(current_power)
 
 func exit():
-	print("Leaving charging")
+	# print("Leaving charging")
+	pass

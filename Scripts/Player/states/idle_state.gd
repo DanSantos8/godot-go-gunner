@@ -1,6 +1,6 @@
 class_name IdleState extends State
 func enter():
-	print("Entrou no Idle")
+	# print("Entrou no Idle")
 	player.get_node("PlayerAnimation").play("Idle")
 	player.velocity = Vector2.ZERO
 
@@ -16,4 +16,5 @@ func execute(delta: float):
 		state_machine.change_state('charge')
 	
 func exit():
-	print("Saindo do Idle")
+	# print("Saindo do Idle")
+	pass
