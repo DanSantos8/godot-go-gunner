@@ -25,4 +25,10 @@ func _process(delta: float):
 		animated_sprite.flip_h = velocity.x < 0
 
 func _physics_process(delta: float) -> void:
-	state_machine.execute(delta)	
+	if not can_act():
+		return
+		
+	state_machine.execute(delta)
+	
+func can_act() -> bool:
+	return BattleManager.can_player_act(self)

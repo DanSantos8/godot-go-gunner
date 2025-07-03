@@ -54,16 +54,16 @@ func start_turn():
 	change_state("turnstart")
 
 func wait_for_input():
-	change_state("waiting_input")
+	change_state("waitinginput")
 
 func projectile_launched():
-	change_state("projectile_flying")
+	change_state("projectileflying")
 
 func explosion_occurred():
 	change_state("explosion")
 
 func end_turn():
-	change_state("turn_end")
+	change_state("turnend")
 
 func game_over():
-	change_state("game_over")
+	change_state("gameover")

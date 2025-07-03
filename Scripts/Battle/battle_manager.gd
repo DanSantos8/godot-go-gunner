@@ -22,6 +22,8 @@ var current_projectile: RigidBody2D = null
 var max_players: int = 2
 var rounds_to_win: int = 1
 
+var unlocked_players: Array[Player] = []
+
 func _ready():
 	print("🚀 [BATTLE_MANAGER] Initializing...")
 	# Conecta com o ProjectileManager existente
@@ -117,6 +119,21 @@ func next_player():
 func get_next_player_index() -> int:
 	return (current_player_index + 1) % players.size()
 
+func lock_all_players():
+	unlocked_players.clear()
+	print("🔒 [BATTLE_MANAGER] Todos players bloqueados")
+
+func unlock_player(player: Player):
+	unlocked_players.clear()
+	unlocked_players.append(player)
+	print("🔓 [BATTLE_MANAGER] Player desbloqueado: " + player.name)
+	
+func is_player_unlocked(player: Player) -> bool:
+	return player in unlocked_players
+
+func can_player_act(player: Player) -> bool:
+	return is_player_unlocked(player)
+	
 func get_alive_players() -> Array[Player]:
 	var alive: Array[Player] = []
 	for player in players:

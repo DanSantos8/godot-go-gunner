@@ -16,7 +16,7 @@ func enter():
 	
 	# Transita para aguardar input do player
 	log_state("Liberando controles para: " + current_player.name)
-	state_machine.change_state("waiting_input")
+	state_machine.change_state("waitinginput")
 
 func execute(delta: float):
 	# TurnStartState é só transição, não precisa de lógica contínua

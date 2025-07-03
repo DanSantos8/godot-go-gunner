@@ -11,6 +11,13 @@ func execute(delta):
 	var angle: float = deg_to_rad(player.shooting_angle)
 	ProjectileManager.create_projectile(shoot_position, angle, player.power_bar.value, facing_left)
 	
+	MessageBus.emit_battle_event("projectile_launched", {
+		"player": player,
+		"angle": player.shooting_angle,
+		"power": player.power_bar.value,
+		"position": shoot_position
+	})
+	
 	state_machine.change_state('idle')
 
 func exit():
