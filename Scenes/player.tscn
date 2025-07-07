@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=3 uid="uid://d1gje1pn4nn8r"]
+[gd_scene load_steps=32 format=3 uid="uid://d1gje1pn4nn8r"]
 
 [ext_resource type="Script" uid="uid://diu5krvdha67u" path="res://Scripts/Player/player.gd" id="1_fkybt"]
 [ext_resource type="Texture2D" uid="uid://bvcskge150t0d" path="res://Sprites/Character/Dude_Monster_Idle_4.png" id="2_x3wgy"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://b1iaym46bq16" path="res://aim_state.gd" id="9_f1ek2"]
 [ext_resource type="Script" uid="uid://lj8comtv48jy" path="res://Scripts/Player/states/charge_state.gd" id="10_tx1dd"]
 [ext_resource type="Script" uid="uid://c13nhd5i7vqdi" path="res://Scripts/Player/states/shoot_state.gd" id="11_gymyn"]
+[ext_resource type="Script" uid="uid://hwpdb3erpnw3" path="res://Scripts/Player/states/waiting_turn_state.gd" id="12_pu2lt"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_kcpg1"]
 atlas = ExtResource("2_x3wgy")
@@ -162,7 +163,7 @@ position = Vector2(-1, 7)
 shape = SubResource("CapsuleShape2D_7gowh")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(2, 2)
+zoom = Vector2(1.5, 1.5)
 
 [node name="PlayerUI" type="CanvasLayer" parent="."]
 
@@ -223,3 +224,7 @@ metadata/_custom_type_script = "uid://lj8comtv48jy"
 [node name="ShootState" type="Node" parent="StateMachine"]
 script = ExtResource("11_gymyn")
 metadata/_custom_type_script = "uid://c13nhd5i7vqdi"
+
+[node name="WaitingTurnState" type="Node" parent="StateMachine"]
+script = ExtResource("12_pu2lt")
+metadata/_custom_type_script = "uid://hwpdb3erpnw3"

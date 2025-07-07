@@ -1,3 +1,4 @@
+# Scripts/Battle/battle_state_machine.gd - UPDATED
 class_name BattleStateMachine extends Node
 
 var current_state: BattleState
@@ -49,7 +50,8 @@ func execute(delta: float):
 	if current_state:
 		current_state.execute(delta)
 
-# Métodos de conveniência para states comuns
+# ===== CONVENIENCE METHODS =====
+
 func start_turn():
 	change_state("turnstart")
 
@@ -67,3 +69,23 @@ func end_turn():
 
 func game_over():
 	change_state("gameover")
+
+# ===== PLAYER STATE COORDINATION =====
+
+func activate_waiting_turn_for_inactive_players():
+	"""Coloca players inativos em WaitingTurnState"""
+	var current_player = battle_manager.get_current_player()
+	
+	for player in battle_manager.players:
+		if player != current_player:
+			# Força transição para WaitingTurnState
+			if player.state_machine:
+				player.state_machine.change_state("waitingturn")
+				print("🔄 [BATTLE_SM] ", player.name, " → WaitingTurnState")
+
+func deactivate_waiting_turn_for_all_players():
+	"""Remove todos players do WaitingTurnState"""
+	for player in battle_manager.players:
+		if player.state_machine and player.state_machine.current_state.name == "WaitingTurnState":
+			player.state_machine.change_state("idle")
+			print("🔄 [BATTLE_SM] ", player.name, " → IdleState")

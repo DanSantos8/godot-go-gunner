@@ -7,7 +7,6 @@ signal player_shot(player: Player)
 signal explosion_occurred(position: Vector2, damage: float)
 signal battle_ended(winner: Player)
 
-# Referencias da state machine (será criada dinamicamente ou na cena)
 var state_machine: BattleStateMachine
 
 # Battle data
@@ -43,7 +42,7 @@ func _process(delta: float):
 	if state_machine:
 		state_machine.execute(delta)
 
-# Inicialização da batalha - VERSÃO CORRIGIDA
+# Inicialização da batalha
 func start_battle(player_list: Array[Player] = []):
 	print("🎯 [BATTLE_MANAGER] Starting battle initialization...")
 	
@@ -166,6 +165,7 @@ func _on_terrain_destroyed(position: Vector2, radius: float):
 
 # Eventos do MessageBus (método genérico mantido para compatibilidade)
 func _on_battle_event(event_type: String, data: Dictionary):
+	print(event_type)
 	match event_type:
 		"projectile_launched":
 			if state_machine:

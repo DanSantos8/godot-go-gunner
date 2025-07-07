@@ -8,7 +8,7 @@ func enter():
 		log_state("❌ ERRO: Player atual não encontrado!")
 		return
 	
-	_activate_current_player()
+	_setup_player_states()
 	_show_turn_feedback()
 	
 	# Pequena pausa para feedback visual
@@ -25,13 +25,39 @@ func execute(delta: float):
 func exit():
 	log_state("Saindo do TurnStart...")
 
-# ===== MÉTODOS ESSENCIAIS =====
+# ===== PLAYER STATE MANAGEMENT =====
+
+func _setup_player_states():
+	"""Configura states de todos os players para o turno"""
+	var current_player = get_current_player()
+	
+	for player in battle_manager.players:
+		if player == current_player:
+			_ensure_player_ready_for_turn(player)
+		else:
+			_set_player_waiting_turn(player)
+
+func _ensure_player_ready_for_turn(player: Player):
+	"""Garante que o player ativo está pronto para jogar"""
+	if player.state_machine:
+		var current_state_name = player.state_machine.current_state.get_script().get_global_name()
+		if current_state_name == "WaitingTurnState":
+			player.state_machine.change_state("idle")
+		
+		log_state("Player ativo preparado: " + player.name)
+
+func _set_player_waiting_turn(player: Player):
+	"""Coloca player em WaitingTurnState"""
+	if player.state_machine:
+		player.state_machine.change_state("waitingturn")
+		log_state("Player em waiting: " + player.name)
+
+# ===== LEGACY METHODS (mantidos para compatibilidade) =====
 
 func _activate_current_player():
 	"""Ativa o player atual e desativa os outros"""
 	var current_player = get_current_player()
 	
-	# Ativa apenas o player atual
 	for i in range(battle_manager.players.size()):
 		var player = battle_manager.players[i]
 		
@@ -40,7 +66,6 @@ func _activate_current_player():
 			_enable_player_controls(player)
 			log_state("Player ativado: " + player.name)
 		else:
-			# Players inativos
 			_disable_player_controls(player)
 
 func _enable_player_controls(player: Player):

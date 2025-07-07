@@ -1,14 +1,34 @@
+# Scripts/message_bus.gd - UPDATED
 extends Node
 
+# ===== SIGNALS =====
 signal battle_event(event_type: String, data: Dictionary)
 
+# NOVO: Signal específico para colisão de projétil
+signal projectile_collision(collision_type: String, position: Vector2, target: Node)
+
+# ===== EMIT METHODS =====
 func emit_battle_event(event_type: String, data: Dictionary):
 	battle_event.emit(event_type, data)
-	print("🎮 [MESSAGE_BUS] ", event_type, " | ", data)
+	_log_event(event_type, data)
 
+# NOVO: Método específico para colisão de projétil
+func emit_projectile_collision(collision_type: String, position: Vector2, target: Node = null):
+	projectile_collision.emit(collision_type, position, target)
+	_log_event("projectile_collision", {
+		"type": collision_type,
+		"position": position,
+		"target": target.name if target else "none"
+	})
+
+# ===== LOGGING =====
 func _log_event(event_type: String, data: Dictionary):
 	# Filtro de logs por tipo (para não poluir console)
-	var important_events = ["battle_started", "battle_ended", "player_shot", "projectile_hit", "player_died"]
+	var important_events = [
+		"battle_started", "battle_ended", "player_shot", 
+		"projectile_hit", "player_died", "projectile_collision",
+		"explosion_triggered", "projectile_flying"
+	]
 	
 	if event_type in important_events:
 		print("🎮 [MESSAGE_BUS] ", event_type, " | ", data)

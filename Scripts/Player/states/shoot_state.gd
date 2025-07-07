@@ -18,7 +18,7 @@ func execute(delta):
 		"position": shoot_position
 	})
 	
-	state_machine.change_state('idle')
+	state_machine.change_state('waitingturn')
 
 func exit():
 	pass

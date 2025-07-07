@@ -1,16 +1,12 @@
 class_name MoveState extends State
 
-@export var gravity: float = 10000.0
-@export var speed: float = 150.00
+@export var speed: float = 20.00
 
 func enter():
 	player.get_node("PlayerAnimation").play("Walking")
 	
 func execute(delta: float):
 	var input_direction = Input.get_axis("move_left", "move_right")
-	
-	if not player.is_on_floor():
-		player.velocity.y += gravity * delta
 	
 	if input_direction == 0: 
 		state_machine.change_state('idle')

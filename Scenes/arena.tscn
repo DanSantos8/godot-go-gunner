@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://bdcpi0ubabcmf"]
+[gd_scene load_steps=12 format=3 uid="uid://bdcpi0ubabcmf"]
 
 [ext_resource type="Script" uid="uid://bapnr58di4w2a" path="res://Scripts/Battle/battle.gd" id="1_1v1nj"]
 [ext_resource type="Script" uid="uid://lhwmab1jgm8r" path="res://Scripts/terrain.gd" id="1_lq7nq"]
@@ -8,6 +8,8 @@
 [ext_resource type="Script" uid="uid://c8fmg1ydeppkq" path="res://Scripts/Battle/states/setup_state.gd" id="6_g2joa"]
 [ext_resource type="Script" uid="uid://cbiwisl7r2x84" path="res://Scripts/Battle/states/turn_start_state.gd" id="7_g2joa"]
 [ext_resource type="Script" uid="uid://vt1ebev3c2qx" path="res://Scripts/Battle/states/waiting_input_state.gd" id="8_cs8mb"]
+[ext_resource type="Script" uid="uid://culovwnqsw7fr" path="res://Scripts/Battle/states/projectile_flying_state.gd" id="9_xrytr"]
+[ext_resource type="Script" uid="uid://bbcpexojadrdx" path="res://Scripts/Battle/states/turn_end_state.gd" id="10_stc3i"]
 
 [sub_resource type="Curve2D" id="Curve2D_1v1nj"]
 _data = {
@@ -53,3 +55,11 @@ metadata/_custom_type_script = "uid://cbiwisl7r2x84"
 [node name="WaitingInputState" type="Node" parent="BattleStateMachine"]
 script = ExtResource("8_cs8mb")
 metadata/_custom_type_script = "uid://vt1ebev3c2qx"
+
+[node name="ProjectileFlyingState" type="Node" parent="BattleStateMachine"]
+script = ExtResource("9_xrytr")
+metadata/_custom_type_script = "uid://culovwnqsw7fr"
+
+[node name="TurnEndState" type="Node" parent="BattleStateMachine"]
+script = ExtResource("10_stc3i")
+metadata/_custom_type_script = "uid://bbcpexojadrdx"

@@ -8,14 +8,11 @@ func enter():
 	
 	_find_and_register_players()
 	
-	# VALIDAÇÃO CRÍTICA
 	if not battle_manager.validate_battle_ready():
 		log_state("❌ Setup falhou - players insuficientes")
 		return
 	
 	log_state("Setup completo! Iniciando primeiro turno...")
-	
-	# Transita para o primeiro turno
 	state_machine.start_turn()
 
 func execute(delta: float):
@@ -66,7 +63,7 @@ func _create_dummy_player_for_testing():
 	var dummy_player = original_player.duplicate()
 	
 	# Posiciona o dummy em local diferente
-	dummy_player.global_position = original_player.global_position + Vector2(200, 0)
+	dummy_player.global_position = original_player.global_position + Vector2(200, -50)
 	dummy_player.name = "Player2_Dummy"
 	
 	# Adiciona à cena
