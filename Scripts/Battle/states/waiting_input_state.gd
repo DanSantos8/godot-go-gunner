@@ -3,8 +3,6 @@ class_name WaitingInputState extends BattleState
 var turn_timer: float = BattleManager.turn_timer
 var max_turn_time: float = BattleManager.max_turn_time
 
-@onready var TimerLabel = $"../../TurnTimerHUD/TimerLabel"
-
 func enter():
 	log_state("Aguardando input do player " + str(battle_manager.current_player_index))
 	
@@ -20,9 +18,8 @@ func enter():
 
 func execute(delta: float):
 	turn_timer -= delta
-	
-	TimerLabel.text = "Tempo restante: " + str(roundi(turn_timer))
-	
+	MessageBus.turn_timer.emit(turn_timer)
+		
 	if turn_timer <= 0:
 		log_state("⏰ Timeout! Passando turno...")
 		_end_turn_by_timeout()
@@ -42,7 +39,7 @@ func _on_battle_event(event_type: String, data: Dictionary):
 		
 		if shooter == current_player:
 			log_state("✅ Tiro válido de " + shooter.name)
-			state_machine.end_turn()
+			state_machine.projectile_launched()
 		else:
 			log_state("❌ Tiro inválido! Player " + shooter.name + " não é o atual")
 

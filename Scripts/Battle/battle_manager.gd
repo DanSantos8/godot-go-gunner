@@ -12,8 +12,8 @@ var state_machine: BattleStateMachine
 # Battle data
 var players: Array[Player] = []
 var current_player_index: int = 0
-var turn_timer: float = 10.5
-var max_turn_time: float = 10.5
+var turn_timer: float = 11
+var max_turn_time: float = 11
 var wind_force: Vector2 = Vector2.ZERO
 var current_projectile: RigidBody2D = null
 

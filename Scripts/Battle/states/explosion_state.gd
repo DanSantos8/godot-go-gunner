@@ -15,15 +15,15 @@ func enter():
 		MessageBus.battle_event.connect(_on_battle_event)
 	
 	# Processa efeitos da explosão
-	_process_explosion_effects()
-
+	_finish_explosion()
+	
 func execute(delta: float):
 	# Aguarda efeitos visuais terminarem
 	explosion_timer -= delta
 	
 	if explosion_timer <= 0:
 		log_state("Explosão finalizada - passando turno...")
-		_finish_explosion()
+		state_machine.end_turn()
 
 func exit():
 	log_state("Saindo do Explosion...")
@@ -34,35 +34,14 @@ func exit():
 
 # ===== EXPLOSION PROCESSING =====
 
-func _process_explosion_effects():
-	"""Processa todos os efeitos da explosão"""
-	log_state("Processando efeitos da explosão...")
-	
-	# Por enquanto, só aguarda o timer
-	# TODO: Adicionar partículas, screen shake, etc.
-	
-	# Emite evento para outros sistemas saberem que explosão começou
-	MessageBus.emit_battle_event("explosion_started", {
-		"current_player": get_current_player()
-	})
-	_finish_explosion()
-
 func _finish_explosion():
-	"""Finaliza a explosão e passa o turno"""
-	
-	# Emite evento de explosão finalizada
-	MessageBus.emit_battle_event("explosion_finished", {
-		"current_player": get_current_player()
-	})
-	
-	# Transição para fim de turno
+	await get_tree().create_timer(1.0).timeout
 	state_machine.end_turn()
 
 # ===== EVENT HANDLERS =====
 
 func _on_battle_event(event_type: String, data: Dictionary):
 	# Escuta eventos durante a explosão se necessário
-	print("ENTROU???")
 	match event_type:
 		"terrain_destruction_complete":
 			log_state("Destruição de terreno finalizada")

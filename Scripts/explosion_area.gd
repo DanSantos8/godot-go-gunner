@@ -10,10 +10,11 @@ func _ready():
 		destruction_data = DestructionData.new()
 		destruction_data.type = DestructionData.DestructionType.CIRCULAR
 		destruction_data.radius = 15.0
-
+		
 func _on_body_entered(body: Node2D) -> void:
-	# print("💥 EXPLOSION AREA detectou: ", body.name, " | Tipo: ", body.get_class())
-	
+	print("💥 EXPLOSION AREA detectou: ", body.name, " | Tipo: ", body.get_class())
+	MessageBus.emit_projectile_collision(body.name, global_position, body)
+
 	if body.name == "Terrain":
 		# print("🌍 Destruindo terreno...")
 		var terrain_container = get_tree().get_first_node_in_group("terrain_manager")
@@ -22,7 +23,6 @@ func _on_body_entered(body: Node2D) -> void:
 			terrain_container.apply_destruction(global_position, destruction_data)
 		else:
 			print("TerrainContainer não encontrado!")
-		
 		get_parent().queue_free()
 	
 	elif body is Player:

@@ -7,6 +7,7 @@ signal battle_event(event_type: String, data: Dictionary)
 # Signal específico para colisão de projétil
 signal projectile_collision(collision_type: String, position: Vector2, target: Node)
 
+signal turn_timer(seconds: int)
 # ===== EMIT METHODS =====
 func emit_battle_event(event_type: String, data: Dictionary):
 	battle_event.emit(event_type, data)

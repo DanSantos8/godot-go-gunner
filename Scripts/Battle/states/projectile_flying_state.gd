@@ -11,6 +11,8 @@ func enter():
 	
 	# Reset timer de segurança
 	safety_timer = max_flight_time
+	
+	MessageBus.projectile_collision.connect(_on_projectile_explosion)
 
 func execute(delta: float):
 	# Timer de segurança - evita projétil "eterno"
@@ -19,6 +21,10 @@ func execute(delta: float):
 	if safety_timer <= 0:
 		log_state("⏰ Timeout de voo! Finalizando turno...")
 		state_machine.end_turn()
-
+		
 func exit():
 	log_state("Saindo do ProjectileFlying...")
+	MessageBus.projectile_collision.disconnect(_on_projectile_explosion)
+
+func _on_projectile_explosion(collision_type: String, position: Vector2, target: Node):
+	state_machine.explosion_occurred()

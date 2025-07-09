@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://bdcpi0ubabcmf"]
+[gd_scene load_steps=14 format=3 uid="uid://bdcpi0ubabcmf"]
 
 [ext_resource type="Script" uid="uid://bapnr58di4w2a" path="res://Scripts/Battle/battle.gd" id="1_1v1nj"]
 [ext_resource type="Script" uid="uid://lhwmab1jgm8r" path="res://Scripts/terrain.gd" id="1_lq7nq"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://culovwnqsw7fr" path="res://Scripts/Battle/states/projectile_flying_state.gd" id="9_xrytr"]
 [ext_resource type="Script" uid="uid://d2g6ang5flj14" path="res://Scripts/Battle/states/explosion_state.gd" id="10_iyva0"]
 [ext_resource type="Script" uid="uid://bbcpexojadrdx" path="res://Scripts/Battle/states/turn_end_state.gd" id="10_stc3i"]
+[ext_resource type="Script" uid="uid://c2euryxsnw0s" path="res://Scripts/turn_timer_hud.gd" id="12_2cush"]
 
 [sub_resource type="Curve2D" id="Curve2D_1v1nj"]
 _data = {
@@ -70,9 +71,20 @@ script = ExtResource("10_stc3i")
 metadata/_custom_type_script = "uid://bbcpexojadrdx"
 
 [node name="TurnTimerHUD" type="CanvasLayer" parent="."]
+script = ExtResource("12_2cush")
 
-[node name="TimerLabel" type="Label" parent="TurnTimerHUD"]
-offset_left = 442.0
-offset_top = 53.0
-offset_right = 482.0
-offset_bottom = 76.0
+[node name="VBoxContainer" type="VBoxContainer" parent="TurnTimerHUD"]
+offset_left = 419.0
+offset_top = 19.0
+offset_right = 641.0
+offset_bottom = 69.0
+
+[node name="TimerLabel" type="Label" parent="TurnTimerHUD/VBoxContainer"]
+layout_mode = 2
+text = "Remaining Time: "
+horizontal_alignment = 1
+
+[node name="PlayerTurnLabel" type="Label" parent="TurnTimerHUD/VBoxContainer"]
+layout_mode = 2
+text = "Your turn"
+horizontal_alignment = 1

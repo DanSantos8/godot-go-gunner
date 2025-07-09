@@ -1,4 +1,3 @@
-# Scripts/projectile.gd - UPDATED
 extends RigidBody2D
 
 @onready var sprite: AnimatedSprite2D = $ProjectileAnimation
@@ -15,10 +14,7 @@ var has_collided: bool = false
 
 func _ready() -> void:
 	angular_velocity = spin_speed
-	
-	# Conecta sinais de colisão
-	body_entered.connect(_on_body_collision)
-	
+		
 	# Conecta área de explosão
 	if explosion_area:
 		explosion_area.body_entered.connect(_on_explosion_area_entered)
@@ -37,51 +33,11 @@ func setup_shot(angle: float, power: float, facing_left: bool):
 	var initial_velocity = Vector2(cos_value * velocity_magnitude, sin_value * velocity_magnitude)
 	linear_velocity = initial_velocity
 
-# ===== COLLISION DETECTION =====
-
-func _on_body_collision(body: Node):
-	if has_collided:
-		return
-	
-	has_collided = true
-	
-	if body.is_in_group("terrain_manager"):
-		_handle_terrain_collision(body)
-	elif body is Player:
-		_handle_player_collision(body)
-	else:
-		_handle_generic_collision(body)
-
 func _on_explosion_area_entered(body: Node):
 	# Área de explosão detecta terrain para destruição
 	# Mas não causa auto-destruição do projétil
 	pass
-
-func _handle_terrain_collision(terrain: Node):
-	print("🎯 [PROJECTILE] Colidiu com terreno")
 	
-	MessageBus.emit_projectile_collision("terrain", global_position, terrain)
-	
-	_destroy_projectile()
-
-func _handle_player_collision(player: Player):
-	print("🎯 [PROJECTILE] Colidiu com player: ", player.name)
-	
-	# Emite signal específico
-	MessageBus.emit_projectile_collision("player", global_position, player)
-	
-	# Auto-destruição
-	_destroy_projectile()
-
-func _handle_generic_collision(body: Node):
-	print("🎯 [PROJECTILE] Colisão genérica com: ", body.name)
-	
-	# Emite signal genérico
-	MessageBus.emit_projectile_collision("generic", global_position, body)
-	
-	# Auto-destruição
-	_destroy_projectile()
-
 # ===== BOUNDARY DETECTION =====
 
 func _setup_boundary_detection():
