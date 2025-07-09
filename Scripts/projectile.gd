@@ -60,10 +60,8 @@ func _on_explosion_area_entered(body: Node):
 func _handle_terrain_collision(terrain: Node):
 	print("🎯 [PROJECTILE] Colidiu com terreno")
 	
-	# Emite signal específico
 	MessageBus.emit_projectile_collision("terrain", global_position, terrain)
 	
-	# Auto-destruição
 	_destroy_projectile()
 
 func _handle_player_collision(player: Player):

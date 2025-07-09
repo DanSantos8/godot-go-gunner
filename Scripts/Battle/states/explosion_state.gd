@@ -62,6 +62,7 @@ func _finish_explosion():
 
 func _on_battle_event(event_type: String, data: Dictionary):
 	# Escuta eventos durante a explosão se necessário
+	print("ENTROU???")
 	match event_type:
 		"terrain_destruction_complete":
 			log_state("Destruição de terreno finalizada")

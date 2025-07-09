@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://d1gje1pn4nn8r"]
+[gd_scene load_steps=33 format=3 uid="uid://d1gje1pn4nn8r"]
 
 [ext_resource type="Script" uid="uid://diu5krvdha67u" path="res://Scripts/Player/player.gd" id="1_fkybt"]
 [ext_resource type="Texture2D" uid="uid://bvcskge150t0d" path="res://Sprites/Character/Dude_Monster_Idle_4.png" id="2_x3wgy"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://lj8comtv48jy" path="res://Scripts/Player/states/charge_state.gd" id="10_tx1dd"]
 [ext_resource type="Script" uid="uid://c13nhd5i7vqdi" path="res://Scripts/Player/states/shoot_state.gd" id="11_gymyn"]
 [ext_resource type="Script" uid="uid://hwpdb3erpnw3" path="res://Scripts/Player/states/waiting_turn_state.gd" id="12_pu2lt"]
+[ext_resource type="Script" uid="uid://54rculmy58ak" path="res://Scripts/Player/health_component.gd" id="13_ukyrk"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_kcpg1"]
 atlas = ExtResource("2_x3wgy")
@@ -193,7 +194,15 @@ offset_left = 28.0
 offset_top = 56.0
 offset_right = 68.0
 offset_bottom = 79.0
+text = "Power:"
 script = ExtResource("5_f1ek2")
+
+[node name="HealthLabel" type="Label" parent="PlayerUI"]
+offset_left = 27.0
+offset_top = 86.0
+offset_right = 115.0
+offset_bottom = 109.0
+text = "Health: 100"
 
 [node name="WeaponPivot" type="Node2D" parent="."]
 position = Vector2(8, 8)
@@ -228,3 +237,6 @@ metadata/_custom_type_script = "uid://c13nhd5i7vqdi"
 [node name="WaitingTurnState" type="Node" parent="StateMachine"]
 script = ExtResource("12_pu2lt")
 metadata/_custom_type_script = "uid://hwpdb3erpnw3"
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("13_ukyrk")

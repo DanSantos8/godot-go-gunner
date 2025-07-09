@@ -38,6 +38,7 @@ sprite_frames = SubResource("SpriteFrames_7gowh")
 shape = SubResource("CircleShape2D_a5nw3")
 
 [node name="ExplosionArea" type="Area2D" parent="."]
+collision_mask = 9
 script = ExtResource("3_tl4hk")
 
 [node name="ExplosionCollision" type="CollisionShape2D" parent="ExplosionArea"]

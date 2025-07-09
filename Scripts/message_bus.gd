@@ -4,7 +4,7 @@ extends Node
 # ===== SIGNALS =====
 signal battle_event(event_type: String, data: Dictionary)
 
-# NOVO: Signal específico para colisão de projétil
+# Signal específico para colisão de projétil
 signal projectile_collision(collision_type: String, position: Vector2, target: Node)
 
 # ===== EMIT METHODS =====
@@ -12,7 +12,7 @@ func emit_battle_event(event_type: String, data: Dictionary):
 	battle_event.emit(event_type, data)
 	_log_event(event_type, data)
 
-# NOVO: Método específico para colisão de projétil
+# Método específico para colisão de projétil
 func emit_projectile_collision(collision_type: String, position: Vector2, target: Node = null):
 	projectile_collision.emit(collision_type, position, target)
 	_log_event("projectile_collision", {

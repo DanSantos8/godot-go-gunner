@@ -163,20 +163,6 @@ func _on_terrain_destroyed(position: Vector2, radius: float):
 	# Processar efeitos da destruição do terreno
 	pass
 
-# Eventos do MessageBus (método genérico mantido para compatibilidade)
-func _on_battle_event(event_type: String, data: Dictionary):
-	print(event_type)
-	match event_type:
-		"projectile_launched":
-			if state_machine:
-				state_machine.projectile_launched()
-		"projectile_hit":
-			if state_machine:
-				state_machine.explosion_occurred()
-		"player_damaged":
-			# Processar dano aqui
-			pass
-
 # Debug methods
 func debug_info():
 	print("🎮 [BATTLE_MANAGER] Current player: ", current_player_index)
