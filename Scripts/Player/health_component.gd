@@ -12,7 +12,8 @@ func _ready():
 
 func take_damage(amount: float):
 	if current_health <= 0:
-		_handle_death()	
+		_handle_death()
+		
 		return
 		
 	current_health = max(0, current_health - amount)
@@ -32,7 +33,7 @@ func _update_ui():
 func _handle_death():
 	var player = get_parent() as Player
 	if player:
-		MessageBus.emit_battle_event("player_died", {"player": player})
+		MessageBus.game_over.emit(BattleManager.get_current_player())
 	
 	print("💀 Player morreu!")
 

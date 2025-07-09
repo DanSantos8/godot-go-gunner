@@ -63,8 +63,8 @@ func _create_dummy_player_for_testing():
 	var dummy_player = original_player.duplicate()
 	
 	# Posiciona o dummy em local diferente
-	dummy_player.global_position = original_player.global_position + Vector2(200, -50)
-	dummy_player.name = "Player2_Dummy"
+	dummy_player.global_position = original_player.global_position + Vector2(800, -50)
+	dummy_player.name = "Player 2"
 	
 	# Adiciona à cena
 	get_tree().current_scene.add_child(dummy_player)

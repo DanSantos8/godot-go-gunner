@@ -8,6 +8,10 @@ signal battle_event(event_type: String, data: Dictionary)
 signal projectile_collision(collision_type: String, position: Vector2, target: Node)
 
 signal turn_timer(seconds: int)
+
+signal game_over(winner: Player)
+
+
 # ===== EMIT METHODS =====
 func emit_battle_event(event_type: String, data: Dictionary):
 	battle_event.emit(event_type, data)
