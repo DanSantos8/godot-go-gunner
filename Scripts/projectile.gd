@@ -11,6 +11,7 @@ extends RigidBody2D
 
 # Controle de colisão
 var has_collided: bool = false
+signal projectile_destroyed
 
 func _ready() -> void:
 	angular_velocity = spin_speed

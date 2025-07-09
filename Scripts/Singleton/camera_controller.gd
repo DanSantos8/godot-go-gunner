@@ -68,6 +68,11 @@ func _follow_projectile(projectile: Node2D, speed: float):
 	camera.global_position = camera.global_position.lerp(target_pos, speed * get_process_delta_time())
 
 func _process_transition(delta: float):
+	if not is_instance_valid(transition_to):
+		print("⚠️ [CAMERA] Transition target destroyed, returning to player")
+		return_to_current_player()
+		return
+		
 	transition_timer += delta
 	var t = transition_timer / transition_duration
 	
@@ -122,7 +127,8 @@ func _on_battle_event(event_type: String, data: Dictionary):
 			var projectile = ProjectileManager.current_projectile
 			if projectile:
 				follow_projectile(projectile)
-		
+		"projectile_destroyed":
+			_on_projectile_destroyed(data.get("position"))
 		"turn_started":
 			var player = data.get("player")
 			if player:
@@ -139,3 +145,11 @@ func shake_camera(intensity: float = 10.0, duration: float = 0.5):
 
 func zoom_to(new_zoom: Vector2, duration: float = 1.0):
 	pass
+	
+func _on_projectile_destroyed(final_position: Vector2):
+	print("📷 [CAMERA] Projectile destroyed, returning to player")
+
+	if current_state == CameraState.TRANSITIONING:
+		current_state = CameraState.FOLLOWING_PLAYER
+
+	return_to_current_player()

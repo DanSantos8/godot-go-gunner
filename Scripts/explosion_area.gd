@@ -26,7 +26,7 @@ func _on_body_entered(body: Node2D) -> void:
 		get_parent().queue_free()
 	
 	elif body is Player:
-		# print("🎯 Player detectado!")
+		print("🎯 Player detectado!")
 		var health_component = body.get_node("HealthComponent")
 		
 		if health_component:
