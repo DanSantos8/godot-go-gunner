@@ -1,7 +1,9 @@
 class_name WaitingInputState extends BattleState
 
-var turn_timer: float = 0.0
-var max_turn_time: float = 30.0
+var turn_timer: float = BattleManager.turn_timer
+var max_turn_time: float = BattleManager.max_turn_time
+
+@onready var TimerLabel = $"../../TurnTimerHUD/TimerLabel"
 
 func enter():
 	log_state("Aguardando input do player " + str(battle_manager.current_player_index))
@@ -18,6 +20,8 @@ func enter():
 
 func execute(delta: float):
 	turn_timer -= delta
+	
+	TimerLabel.text = "Tempo restante: " + str(roundi(turn_timer))
 	
 	if turn_timer <= 0:
 		log_state("⏰ Timeout! Passando turno...")

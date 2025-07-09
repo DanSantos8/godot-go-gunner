@@ -68,3 +68,11 @@ metadata/_custom_type_script = "uid://d2g6ang5flj14"
 [node name="TurnEndState" type="Node" parent="BattleStateMachine"]
 script = ExtResource("10_stc3i")
 metadata/_custom_type_script = "uid://bbcpexojadrdx"
+
+[node name="TurnTimerHUD" type="CanvasLayer" parent="."]
+
+[node name="TimerLabel" type="Label" parent="TurnTimerHUD"]
+offset_left = 442.0
+offset_top = 53.0
+offset_right = 482.0
+offset_bottom = 76.0

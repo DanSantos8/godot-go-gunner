@@ -6,7 +6,6 @@ class_name AimState extends State
 @export var angle_accumulator = 0.0
 
 func enter():
-	# print("Aiming")
 	player.player_flipped.connect(_on_character_flip)
 	
 func execute(delta):
