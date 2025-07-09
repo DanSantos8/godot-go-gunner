@@ -1,6 +1,7 @@
 extends Node
 
 var projectile_scene = preload("res://Scenes/projectile.tscn")
+var current_projectile: RigidBody2D = null
 
 func create_projectile(position: Vector2, angle: float, power: float, facing_left: bool, shooter: Player = null):
 	# 🛡️ VALIDAÇÃO DE SEGURANÇA
@@ -16,6 +17,7 @@ func create_projectile(position: Vector2, angle: float, power: float, facing_lef
 	projectile.setup_shot(angle, power, facing_left)
 	
 	print("🚀 [PROJECTILE_MANAGER] Projétil criado por: ", shooter.name if shooter else "unknown")
+	current_projectile = projectile
 	return projectile
 
 func _can_player_shoot(shooter: Player) -> bool:

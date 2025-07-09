@@ -18,6 +18,7 @@ var shooting_angle = 0
 
 func _ready():
 	state_machine.init(self)
+	$Camera2D.enabled = false
 	
 func _process(delta: float):
 	if velocity.x != 0:
