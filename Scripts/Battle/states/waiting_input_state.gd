@@ -3,6 +3,19 @@ class_name WaitingInputState extends BattleState
 var turn_timer: float = BattleManager.turn_timer
 var max_turn_time: float = BattleManager.max_turn_time
 
+# ===== TIMER SYNC =====
+var timer_sync_interval: float = 1.0  # Sincroniza a cada 1 segundo
+var timer_sync_accumulator: float = 0.0
+
+@rpc("authority", "call_local", "reliable")
+func sync_timer_update(remaining_time: float):
+	log_state("📡 RPC Timer: " + str(remaining_time) + "s restantes")
+	
+	# Atualiza timer local
+	turn_timer = remaining_time
+	MessageBus.turn_timer.emit(turn_timer)
+	
+	
 func enter():
 	log_state("Aguardando input do player " + str(battle_manager.current_player_index))
 	
@@ -11,18 +24,36 @@ func enter():
 		battle_manager.unlock_player(current_player)
 		log_state("Player desbloqueado: " + current_player.name)
 	
-	turn_timer = max_turn_time
+	# AUTHORITY: inicia timer
+	if battle_manager.is_authority():
+		turn_timer = max_turn_time
+		timer_sync_accumulator = timer_sync_interval
+		# Envia timer inicial imediatamente
+		sync_timer_update.rpc(turn_timer)
 	
 	if not MessageBus.battle_event.is_connected(_on_battle_event):
 		MessageBus.battle_event.connect(_on_battle_event)
 
 func execute(delta: float):
-	turn_timer -= delta
-	MessageBus.turn_timer.emit(turn_timer)
+	if battle_manager.is_authority():
+		# AUTHORITY: controla timer real
+		turn_timer -= delta
+		MessageBus.turn_timer.emit(turn_timer)
 		
-	if turn_timer <= 0:
-		log_state("⏰ Timeout! Passando turno...")
-		_end_turn_by_timeout()
+		# Sincroniza a cada 1 segundo
+		timer_sync_accumulator += delta
+		if timer_sync_accumulator >= timer_sync_interval:
+			battle_manager.log_network("Broadcasting timer: " + str(turn_timer))
+			sync_timer_update.rpc(turn_timer)
+			timer_sync_accumulator = 0.0
+		
+		# Timeout
+		if turn_timer <= 0:
+			log_state("⏰ Timeout! Passando turno...")
+			_end_turn_by_timeout()
+	
+	# CLIENT: apenas aguarda RPC do timer
+	# (não faz nada, timer vem via RPC)
 
 func exit():
 	log_state("Saindo do WaitingInput...")
