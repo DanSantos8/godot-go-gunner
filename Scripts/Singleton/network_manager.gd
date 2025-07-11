@@ -1,4 +1,4 @@
-# NetworkManager.gd - VERSÃO LIMPA
+# NetworkManager.gd - VERSÃO SUPER SIMPLES
 extends Node
 
 const PORT = 8080
@@ -14,6 +14,10 @@ func _ready():
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	multiplayer.connected_to_server.connect(_on_connected_to_server)
 	multiplayer.connection_failed.connect(_on_connection_failed)
+	multiplayer.server_disconnected.connect(_on_server_disconnected)
+
+func _on_scene_changed():
+	print("🎬 [GLOBAL] CENA MUDOU! Current scene: ", get_tree().current_scene.scene_file_path if get_tree().current_scene else "NONE")
 
 func create_server():
 	print("🎮 [NETWORK] Criando servidor...")
@@ -54,3 +58,11 @@ func _on_connected_to_server():
 
 func _on_connection_failed():
 	print("❌ [NETWORK] Falha na conexão!")
+
+func _on_server_disconnected():
+	print("🔴 [NETWORK] SERVIDOR DESCONECTOU!")
+	
+	# Forçar saída IMEDIATA do processo
+	# Ao invés de tentar "salvar" a sessão
+	print("🔴 [NETWORK] Forçando saída do cliente...")
+	get_tree().quit()

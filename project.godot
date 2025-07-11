@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="GoGunner"
-run/main_scene="uid://bdcpi0ubabcmf"
+run/main_scene="uid://k18r5yy6ppr0"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -22,7 +22,6 @@ MessageBus="*res://Scripts/message_bus.gd"
 BattleManager="*res://Scripts/Battle/battle_manager.gd"
 CameraController="*res://Scripts/Singleton/camera_controller.gd"
 NetworkManager="*res://Scripts/Singleton/network_manager.gd"
-AutoConnect="*res://Scripts/Singleton/auto_connect.gd"
 
 [input]
 
