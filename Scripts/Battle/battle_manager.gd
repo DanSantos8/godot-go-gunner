@@ -256,3 +256,11 @@ func sync_player_spawned(network_id: int, position: Vector2, player_name: String
 		players[player_index] = player_instance
 	else:
 		players.append(player_instance)
+
+# ===== NETWORK AUTHORITY =====
+func is_authority() -> bool:
+	return multiplayer.is_server() or multiplayer.get_unique_id() == 1
+
+func log_network(message: String):
+	var authority_status = "AUTHORITY" if is_authority() else "CLIENT"
+	print("📡 [", authority_status, "] ", message)
