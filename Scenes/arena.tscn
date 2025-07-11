@@ -1,8 +1,7 @@
-[gd_scene load_steps=15 format=3 uid="uid://bdcpi0ubabcmf"]
+[gd_scene load_steps=14 format=3 uid="uid://bdcpi0ubabcmf"]
 
 [ext_resource type="Script" uid="uid://bapnr58di4w2a" path="res://Scripts/Battle/battle.gd" id="1_1v1nj"]
 [ext_resource type="Script" uid="uid://lhwmab1jgm8r" path="res://Scripts/terrain.gd" id="1_lq7nq"]
-[ext_resource type="PackedScene" uid="uid://d1gje1pn4nn8r" path="res://Scenes/player.tscn" id="2_nnts3"]
 [ext_resource type="Script" uid="uid://7yo73702r1oo" path="res://Scripts/Battle/battle_state_machine.gd" id="5_csrox"]
 [ext_resource type="PackedScene" uid="uid://qylr5iaon7m6" path="res://Scenes/projectile.tscn" id="6_csrox"]
 [ext_resource type="Script" uid="uid://c8fmg1ydeppkq" path="res://Scripts/Battle/states/setup_state.gd" id="6_g2joa"]
@@ -37,9 +36,6 @@ curve = SubResource("Curve2D_1v1nj")
 
 [node name="TerrainCollision" type="CollisionPolygon2D" parent="TerrainContainer/Terrain"]
 polygon = PackedVector2Array(-18, -16, -31, -9, -24, -31)
-
-[node name="Player" parent="." instance=ExtResource("2_nnts3")]
-position = Vector2(62, 521)
 
 [node name="Projectile" parent="." instance=ExtResource("6_csrox")]
 position = Vector2(-457, 12)

@@ -23,6 +23,13 @@ var rounds_to_win: int = 1
 
 var unlocked_players: Array[Player] = []
 
+var player_scene = preload("res://Scenes/player.tscn")
+var spawn_positions: Array[Vector2] = [
+	Vector2(600, 500),   # Player 1 spawn
+	Vector2(900, 500)    # Player 2 spawn
+]
+
+
 func _ready():
 	print("🚀 [BATTLE_MANAGER] Initializing...")
 	# Conecta com o ProjectileManager existente
@@ -168,3 +175,84 @@ func debug_info():
 	print("🎮 [BATTLE_MANAGER] Current player: ", current_player_index)
 	print("🎮 [BATTLE_MANAGER] Turn timer: ", turn_timer)
 	print("🎮 [BATTLE_MANAGER] Current state: ", state_machine.current_state.name if state_machine and state_machine.current_state else "none")
+
+# ===== DYNAMIC PLAYER SPAWNING =====
+
+func setup_players_multiplayer():
+	print("🎮 [BATTLE] Setup players para multiplayer...")
+	
+	if not multiplayer.is_server():
+		print("❌ [BATTLE] Só servidor pode spawnar players!")
+		return
+	
+	# Limpar players existentes
+	_clear_existing_players()
+	
+	# Spawnar players baseado em conexões
+	_spawn_connected_players()
+
+func _clear_existing_players():
+	# Remove players que podem estar na cena
+	for child in get_tree().current_scene.get_children():
+		if child is Player:
+			child.queue_free()
+
+func _spawn_connected_players():
+	var connected_peers = [1] # Server sempre é ID 1
+	connected_peers.append_array(multiplayer.get_peers())
+	
+	print("🎮 [BATTLE] Players conectados: ", connected_peers)
+	
+	for i in range(min(connected_peers.size(), spawn_positions.size())):
+		var peer_id = connected_peers[i]
+		var spawn_pos = spawn_positions[i]
+		var player_name = "Player" + str(i + 1)
+		
+		_spawn_player(peer_id, spawn_pos, player_name, i)
+
+func _spawn_player(network_id: int, position: Vector2, player_name: String, player_index: int):
+	print("👤 [BATTLE] Spawnando ", player_name, " (ID: ", network_id, ") em ", position)
+	
+	# Criar player
+	var player_instance = player_scene.instantiate()
+	player_instance.name = player_name
+	player_instance.global_position = position
+	
+	# Configurar network
+	player_instance.set_multiplayer_authority(network_id)
+	
+	# Adicionar à cena
+	get_tree().current_scene.add_child(player_instance, true)
+	
+	# Registrar no battle manager
+	if player_index < players.size():
+		players[player_index] = player_instance
+	else:
+		players.append(player_instance)
+	
+	# Sincronizar com clients
+	sync_player_spawned.rpc(network_id, position, player_name, player_index)
+
+@rpc("authority", "call_local", "reliable")
+func sync_player_spawned(network_id: int, position: Vector2, player_name: String, player_index: int):
+	if multiplayer.is_server():
+		return # Servidor já criou
+	
+	print("📡 [BATTLE] Cliente recebeu spawn: ", player_name)
+	
+	# Criar player no cliente
+	var player_instance = player_scene.instantiate()
+	player_instance.name = player_name
+	player_instance.global_position = position
+	
+	# Configurar network
+	player_instance.set_multiplayer_authority(network_id)
+	
+	# Adicionar à cena
+	get_tree().current_scene.add_child(player_instance, true)
+	
+	# Registrar localmente
+	if player_index < players.size():
+		players[player_index] = player_instance
+	else:
+		players.append(player_instance)

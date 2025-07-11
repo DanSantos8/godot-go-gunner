@@ -6,7 +6,16 @@ func enter():
 	# Aguarda um frame para garantir que tudo está carregado
 	await get_tree().process_frame
 	
-	_find_and_register_players()
+	# NOVO: Setup multiplayer ao invés de buscar players
+	if multiplayer.has_multiplayer_peer():
+		log_state("Modo multiplayer detectado - spawning players...")
+		battle_manager.setup_players_multiplayer()
+	else:
+		log_state("Modo single player - usando método antigo...")
+		_find_and_register_players()
+	
+	# Validar se temos players suficientes
+	await get_tree().create_timer(0.5).timeout # Aguarda spawn
 	
 	if not battle_manager.validate_battle_ready():
 		log_state("❌ Setup falhou - players insuficientes")
