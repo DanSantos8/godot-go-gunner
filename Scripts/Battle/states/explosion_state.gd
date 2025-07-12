@@ -3,49 +3,67 @@ class_name ExplosionState extends BattleState
 var explosion_timer: float = 0.0
 var explosion_duration: float = 2.0
 
+# ===== NETWORK METHODS =====
+
+@rpc("authority", "call_local", "reliable")
+func sync_explosion_finished():
+	log_state("📡 RPC recebido: sync_explosion_finished")
+	
+	# Transita para TurnEnd em todos os clients
+	state_machine.end_turn()
+
+# ===== MAIN LOGIC =====
+
 func enter():
 	log_state("💥 Explosão em andamento...")
+	
+	# Lock players (redundante, mas garante)
 	battle_manager.lock_all_players()
 	
-	# Reset timer
+	# TODOS iniciam timer local (authority controlará via RPC)
 	explosion_timer = explosion_duration
 	
-	# Conecta eventos relevantes se necessário
-	if not MessageBus.battle_event.is_connected(_on_battle_event):
-		MessageBus.battle_event.connect(_on_battle_event)
+	if battle_manager.is_authority():
+		battle_manager.log_network("Authority iniciando controle de explosão: " + str(explosion_duration) + "s")
 	
-	# Processa efeitos da explosão
-	_finish_explosion()
-	
+	# TODO: Futuros efeitos visuais
+	_start_visual_effects()
+
 func execute(delta: float):
-	# Aguarda efeitos visuais terminarem
-	explosion_timer -= delta
+	# ⚠️ AUTHORITY ONLY: Controla quando acabar
+	if battle_manager.is_authority():
+		explosion_timer -= delta
+		
+		if explosion_timer <= 0:
+			log_state("Authority: Explosão finalizada - passando turno...")
+			battle_manager.log_network("Broadcasting explosion_finished...")
+			sync_explosion_finished.rpc()
 	
-	if explosion_timer <= 0:
-		log_state("Explosão finalizada - passando turno...")
-		state_machine.end_turn()
+	# CLIENT: apenas roda efeitos visuais locais
+	# (timer vem via RPC do authority)
 
 func exit():
 	log_state("Saindo do Explosion...")
 	
-	# Desconecta eventos
-	if MessageBus.battle_event.is_connected(_on_battle_event):
-		MessageBus.battle_event.disconnect(_on_battle_event)
+	# Cleanup de efeitos visuais
+	_cleanup_visual_effects()
 
-# ===== EXPLOSION PROCESSING =====
+# ===== VISUAL EFFECTS (LOCAL) =====
 
-func _finish_explosion():
-	await get_tree().create_timer(1.0).timeout
-	state_machine.end_turn()
+func _start_visual_effects():
+	"""Inicia efeitos visuais locais (sem sync)"""
+	log_state("🎆 Iniciando efeitos visuais da explosão...")
+	
+	# TODO: Implementar futuramente
+	# - Particle effects
+	# - Screen shake  
+	# - Sound effects
+	# - Slow motion
+	# - Camera effects
 
-# ===== EVENT HANDLERS =====
-
-func _on_battle_event(event_type: String, data: Dictionary):
-	# Escuta eventos durante a explosão se necessário
-	match event_type:
-		"terrain_destruction_complete":
-			log_state("Destruição de terreno finalizada")
-		"player_damage_applied":
-			log_state("Dano aplicado ao player")
-		_:
-			pass
+func _cleanup_visual_effects():
+	"""Limpa efeitos visuais locais"""
+	log_state("🧹 Limpando efeitos visuais...")
+	
+	# TODO: Cleanup quando implementar efeitos
+	pass
