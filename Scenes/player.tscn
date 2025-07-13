@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3 uid="uid://d1gje1pn4nn8r"]
+[gd_scene load_steps=34 format=3 uid="uid://d1gje1pn4nn8r"]
 
 [ext_resource type="Script" uid="uid://diu5krvdha67u" path="res://Scripts/Player/player.gd" id="1_fkybt"]
 [ext_resource type="Texture2D" uid="uid://bvcskge150t0d" path="res://Sprites/Character/Dude_Monster_Idle_4.png" id="2_x3wgy"]
@@ -151,6 +151,20 @@ height = 20.0
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1v1nj"]
 bg_color = Color(0.794306, 0.505188, 0.558247, 1)
 
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_ukyrk"]
+properties/0/path = NodePath("StateMachine/MoveState:speed")
+properties/0/spawn = false
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:position")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath("PlayerAnimation:animation")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+properties/3/path = NodePath("PlayerAnimation:flip_h")
+properties/3/spawn = true
+properties/3/replication_mode = 1
+
 [node name="Player" type="CharacterBody2D"]
 collision_layer = 8
 script = ExtResource("1_fkybt")
@@ -240,3 +254,6 @@ metadata/_custom_type_script = "uid://hwpdb3erpnw3"
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("13_ukyrk")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_ukyrk")

@@ -37,14 +37,6 @@ func _ready():
 		# Vamos conectar eventos de projétil aqui depois
 		pass
 
-func _connect_message_bus_events():
-	# Conecta eventos específicos ao invés do genérico
-	MessageBus.projectile_hit.connect(_on_projectile_hit)
-	MessageBus.player_shot.connect(_on_player_shot)
-	MessageBus.terrain_destroyed.connect(_on_terrain_destroyed)
-	
-	print("📡 [BATTLE_MANAGER] Connected to MessageBus events")
-
 func _process(delta: float):
 	if state_machine:
 		state_machine.execute(delta)
@@ -152,23 +144,11 @@ func is_battle_over() -> bool:
 	# TODO: Implementar quando tivermos health system
 	return false  # Por enquanto, batalha nunca acaba
 
-func get_winner() -> Player:
-	var alive = get_alive_players()
-	return alive[0] if alive.size() == 1 else null
-
 # Event handlers específicos
 func _on_projectile_hit(projectile: RigidBody2D, position: Vector2):
 	current_projectile = null
 	if state_machine:
 		state_machine.explosion_occurred()
-
-func _on_player_shot(player: Player, angle: float, power: float):
-	if state_machine:
-		state_machine.projectile_launched()
-
-func _on_terrain_destroyed(position: Vector2, radius: float):
-	# Processar efeitos da destruição do terreno
-	pass
 
 # Debug methods
 func debug_info():
@@ -215,6 +195,7 @@ func _spawn_player(network_id: int, position: Vector2, player_name: String, play
 	
 	# Criar player
 	var player_instance = player_scene.instantiate()
+	player_instance.set_multiplayer_authority(network_id)
 	player_instance.name = player_name
 	player_instance.global_position = position
 	

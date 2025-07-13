@@ -1,7 +1,7 @@
 class_name ShootState extends State
 
 # ===== NETWORK METHODS =====
-@rpc("authority", "call_local", "reliable")
+@rpc("any_peer", "call_local", "reliable")
 func sync_player_shot(shooter_index: int, angle: float, power: float, position: Vector2, facing_left: bool):
 	print("📡 [SHOOT_STATE] RPC recebido: sync_player_shot(", shooter_index, ", ", angle, ", ", power, ")")
 	
