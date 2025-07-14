@@ -3,6 +3,9 @@ class_name Player
 
 signal player_flipped(flip_h: bool)
 
+var network_id: int = -1
+
+
 @onready var state_machine = $StateMachine
 @onready var animated_sprite = $PlayerAnimation
 @onready var weapon_pivot = $WeaponPivot
@@ -40,4 +43,5 @@ func _physics_process(delta: float) -> void:
 	state_machine.execute(delta)
 	
 func can_act() -> bool:
+	print("[CAN_ACT]: ", self, BattleManager.can_player_act(self))
 	return BattleManager.can_player_act(self)

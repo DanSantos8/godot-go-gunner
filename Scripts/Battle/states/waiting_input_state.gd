@@ -10,9 +10,7 @@ var timer_sync_accumulator: float = 0.0
 # ===== NETWORK METHODS =====
 
 @rpc("authority", "call_local", "reliable")
-func sync_timer_update(remaining_time: float):
-	log_state("📡 RPC Timer: " + str(remaining_time) + "s restantes")
-	
+func sync_timer_update(remaining_time: float):	
 	# Atualiza timer local
 	turn_timer = remaining_time
 	MessageBus.turn_timer.emit(turn_timer)
@@ -61,7 +59,6 @@ func execute(delta: float):
 		# Sincroniza a cada 1 segundo
 		timer_sync_accumulator += delta
 		if timer_sync_accumulator >= timer_sync_interval:
-			battle_manager.log_network("Broadcasting timer: " + str(turn_timer))
 			sync_timer_update.rpc(turn_timer)
 			timer_sync_accumulator = 0.0
 		

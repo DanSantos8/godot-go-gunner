@@ -130,7 +130,9 @@ func is_player_unlocked(player: Player) -> bool:
 	return player in unlocked_players
 
 func can_player_act(player: Player) -> bool:
-	return is_player_unlocked(player)
+	var isMyTurn = get_current_player().network_id == player.network_id
+	
+	return is_player_unlocked(player) and isMyTurn
 	
 func get_alive_players() -> Array[Player]:
 	var alive: Array[Player] = []
@@ -188,48 +190,22 @@ func _spawn_connected_players():
 		var spawn_pos = spawn_positions[i]
 		var player_name = "Player" + str(i + 1)
 		
-		_spawn_player(peer_id, spawn_pos, player_name, i)
+		_spawn_player.rpc(peer_id, spawn_pos, player_name, i)
 
+@rpc("authority", "call_local", "reliable")
 func _spawn_player(network_id: int, position: Vector2, player_name: String, player_index: int):
 	print("👤 [BATTLE] Spawnando ", player_name, " (ID: ", network_id, ") em ", position)
 	
 	# Criar player
 	var player_instance = player_scene.instantiate()
-	player_instance.set_multiplayer_authority(network_id)
+	player_instance.network_id = network_id
 	player_instance.name = player_name
+	player_instance.set_multiplayer_authority(network_id)
 	player_instance.global_position = position
 	
 	# Configurar network
 	player_instance.set_multiplayer_authority(network_id)
 	
-	# Adicionar à cena
-	get_tree().current_scene.add_child(player_instance, true)
-	
-	# Registrar no battle manager
-	if player_index < players.size():
-		players[player_index] = player_instance
-	else:
-		players.append(player_instance)
-	
-	# Sincronizar com clients
-	sync_player_spawned.rpc(network_id, position, player_name, player_index)
-
-@rpc("authority", "call_local", "reliable")
-func sync_player_spawned(network_id: int, position: Vector2, player_name: String, player_index: int):
-	if multiplayer.is_server():
-		return # Servidor já criou
-	
-	print("📡 [BATTLE] Cliente recebeu spawn: ", player_name)
-	
-	# Criar player no cliente
-	var player_instance = player_scene.instantiate()
-	player_instance.name = player_name
-	player_instance.global_position = position
-	
-	# Configurar network
-	player_instance.set_multiplayer_authority(network_id)
-	
-	# Adicionar à cena
 	get_tree().current_scene.add_child(player_instance, true)
 	
 	# Registrar localmente
