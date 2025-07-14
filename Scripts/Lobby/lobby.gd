@@ -1,4 +1,4 @@
-# Scripts/lobby.gd
+# Scripts/lobby.gd - COM SUPORTE NGROK
 extends Control
 
 # UI References
@@ -30,8 +30,8 @@ func _create_ui():
 	
 	# Centralização para tela 1152x648
 	main_vbox.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	main_vbox.size = Vector2(350, 400)
-	main_vbox.position = Vector2(-175, -200)
+	main_vbox.size = Vector2(400, 450)
+	main_vbox.position = Vector2(-200, -225)
 	
 	# Title
 	var title = Label.new()
@@ -53,8 +53,8 @@ func _create_ui():
 	main_vbox.add_child(create_label)
 	
 	create_btn = Button.new()
-	create_btn.text = "🎮 CRIAR SALA"
-	create_btn.custom_minimum_size = Vector2(320, 35)
+	create_btn.text = "🎮 CRIAR SALA (TCP)"
+	create_btn.custom_minimum_size = Vector2(380, 35)
 	create_btn.add_theme_font_size_override("font_size", 14)
 	create_btn.pressed.connect(_on_create_pressed)
 	main_vbox.add_child(create_btn)
@@ -70,16 +70,17 @@ func _create_ui():
 	join_label.add_theme_color_override("font_color", Color.CYAN)
 	main_vbox.add_child(join_label)
 	
+	# IP Input com placeholder melhor
 	ip_input = LineEdit.new()
 	ip_input.text = "127.0.0.1"
-	ip_input.placeholder_text = "Digite o IP do host"
-	ip_input.custom_minimum_size = Vector2(320, 25)
-	ip_input.add_theme_font_size_override("font_size", 12)
+	ip_input.placeholder_text = "IP local ou ngrok (ex: 0.tcp.sa.ngrok.io:12850)"
+	ip_input.custom_minimum_size = Vector2(380, 30)
+	ip_input.add_theme_font_size_override("font_size", 11)
 	main_vbox.add_child(ip_input)
 	
 	join_btn = Button.new()
-	join_btn.text = "🔗 CONECTAR"
-	join_btn.custom_minimum_size = Vector2(320, 35)
+	join_btn.text = "🔗 CONECTAR TCP"
+	join_btn.custom_minimum_size = Vector2(380, 35)
 	join_btn.add_theme_font_size_override("font_size", 14)
 	join_btn.pressed.connect(_on_join_pressed)
 	main_vbox.add_child(join_btn)
@@ -104,14 +105,14 @@ func _create_ui():
 	main_vbox.add_child(players_label)
 	
 	players_list = ItemList.new()
-	players_list.custom_minimum_size = Vector2(320, 60)
+	players_list.custom_minimum_size = Vector2(380, 80)
 	players_list.add_theme_font_size_override("font_size", 12)
 	main_vbox.add_child(players_list)
 	
 	# Start Button
 	start_btn = Button.new()
 	start_btn.text = "▶️ INICIAR JOGO"
-	start_btn.custom_minimum_size = Vector2(320, 40)
+	start_btn.custom_minimum_size = Vector2(380, 40)
 	start_btn.add_theme_font_size_override("font_size", 16)
 	start_btn.modulate = Color.GREEN
 	start_btn.pressed.connect(_on_start_pressed)
@@ -126,28 +127,39 @@ func _setup_network_callbacks():
 
 # ===== BUTTON HANDLERS =====
 func _on_create_pressed():
-	print("🎮 [LOBBY] Criando sala...")
+	print("🎮 [LOBBY] Criando sala TCP...")
 	
 	if NetworkManager.create_server():
 		is_host = true
 		_update_ui_for_host()
 		_add_player_to_list(1, "Player 1 (Host)")
+		status_label.text = "✅ Servidor TCP criado! Porta 8080"
 	else:
 		status_label.text = "❌ Erro ao criar sala!"
 
 func _on_join_pressed():
-	var ip = ip_input.text.strip_edges()
-	if ip.is_empty():
-		status_label.text = "❌ Digite um IP válido!"
+	var address = ip_input.text.strip_edges()
+	if address.is_empty():
+		status_label.text = "❌ Digite um endereço válido!"
 		return
 	
-	print("🔗 [LOBBY] Conectando em ", ip)
+	print("🔗 [LOBBY] Tentando conectar em: ", address)
+	status_label.text = "🔗 Conectando..."
+	_disable_connection_buttons()
 	
-	if NetworkManager.join_server(ip):
-		status_label.text = "🔗 Conectando..."
-		_disable_connection_buttons()
+	var success = false
+	
+	# Detecta se é ngrok (contém tcp e porta)
+	if "tcp" in address and ":" in address:
+		print("🌐 [LOBBY] Detectado endereço ngrok")
+		success = NetworkManager.join_ngrok_server(address)
 	else:
+		print("🏠 [LOBBY] Detectado IP local")
+		success = NetworkManager.join_server(address)
+	
+	if not success:
 		status_label.text = "❌ Erro ao conectar!"
+		_enable_connection_buttons()
 
 func _on_start_pressed():
 	if not is_host:
@@ -166,7 +178,7 @@ func _on_peer_connected(id: int):
 	
 	if is_host:
 		_add_player_to_list(id, "Player " + str(id))
-		status_label.text = "✅ Player " + str(id) + " conectou!"
+		status_label.text = "✅ Player " + str(id) + " conectou via TCP!"
 		
 		if players_list.item_count >= 2:
 			start_btn.visible = true
@@ -178,17 +190,17 @@ func _on_peer_disconnected(id: int):
 		start_btn.visible = false
 
 func _on_connected_to_server():
-	print("✅ [LOBBY] Conectado ao servidor!")
-	status_label.text = "✅ Conectado! Aguardando host iniciar..."
+	print("✅ [LOBBY] Conectado ao servidor TCP!")
+	status_label.text = "✅ Conectado via TCP! Aguardando host iniciar..."
 
 func _on_connection_failed():
-	print("❌ [LOBBY] Falha na conexão!")
-	status_label.text = "❌ Falha na conexão!"
+	print("❌ [LOBBY] Falha na conexão TCP!")
+	status_label.text = "❌ Falha na conexão TCP!"
 	_enable_connection_buttons()
 
 # ===== UI HELPERS =====
 func _update_ui_for_host():
-	status_label.text = "🎮 Sala criada! Aguardando players..."
+	status_label.text = "🎮 Sala TCP criada! Aguardando players..."
 	_disable_connection_buttons()
 
 func _disable_connection_buttons():
