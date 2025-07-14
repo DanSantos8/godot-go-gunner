@@ -24,12 +24,18 @@ func _ready():
 	$Camera2D.enabled = false
 	
 func _process(delta: float):
-	if velocity.x != 0:
+	# Verifica se é o player LOCAL E se é seu turno
+	var is_my_player = is_multiplayer_authority()  
+	var is_my_turn = can_act()
+	
+	# HUD só aparece se for MEU player E minha vez
+	player_ui.visible = is_my_player and is_my_turn
+	
+	if velocity.x != 0 and is_my_player and is_my_turn:
 		animated_sprite.flip_h = velocity.x < 0
 	
-	var is_active = can_act()
-	player_ui.visible = is_active
-	var target_scale = 1.15 if is_active else 1.0
+	# Scale visual para TODOS verem quem está ativo
+	var target_scale = 1.15 if is_my_turn else 1.0
 	scale = Vector2(target_scale, target_scale)
 
 func _physics_process(delta: float) -> void:
