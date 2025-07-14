@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://qylr5iaon7m6"]
+[gd_scene load_steps=9 format=3 uid="uid://qylr5iaon7m6"]
 
 [ext_resource type="Script" uid="uid://bo4qkjowyoc6j" path="res://Scripts/projectile.gd" id="1_yr2qt"]
 [ext_resource type="Texture2D" uid="uid://ccrx1s7dw7l0u" path="res://Sprites/Weapons/all.png" id="2_tl4hk"]
@@ -24,6 +24,17 @@ radius = 5.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_d4467"]
 
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_tl4hk"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:linear_velocity")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath(".:rotation")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+
 [node name="Projectile" type="RigidBody2D"]
 collision_layer = 2
 collision_mask = 9
@@ -43,5 +54,8 @@ script = ExtResource("3_tl4hk")
 
 [node name="ExplosionCollision" type="CollisionShape2D" parent="ExplosionArea"]
 shape = SubResource("CircleShape2D_d4467")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_tl4hk")
 
 [connection signal="body_entered" from="ExplosionArea" to="ExplosionArea" method="_on_body_entered"]

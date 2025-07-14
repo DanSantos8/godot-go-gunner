@@ -30,6 +30,7 @@ func _process(delta: float):
 	
 	# HUD só aparece se for MEU player E minha vez
 	player_ui.visible = is_my_player and is_my_turn
+	weapon_pivot.visible = is_my_player and is_my_turn
 	
 	if velocity.x != 0 and is_my_player and is_my_turn:
 		animated_sprite.flip_h = velocity.x < 0
@@ -43,11 +44,14 @@ func _physics_process(delta: float) -> void:
 		velocity.y += gravity * delta
 	move_and_slide()
 	
-	if not can_act():
+	# Só processa input se for MEU player E meu turno
+	var is_my_player = is_multiplayer_authority()
+	var is_my_turn = can_act()
+	
+	if not (is_my_player and is_my_turn):
 		return
 		
 	state_machine.execute(delta)
 	
 func can_act() -> bool:
-	print("[CAN_ACT]: ", self, BattleManager.can_player_act(self))
 	return BattleManager.can_player_act(self)

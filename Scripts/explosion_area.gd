@@ -88,6 +88,7 @@ func _on_body_entered(body: Node2D) -> void:
 func _handle_terrain_collision():
 	print("🌍 Authority processando destruição de terreno...")
 	
+	await get_tree().process_frame
 	# Broadcasts terrain destruction
 	sync_terrain_destruction.rpc(global_position, destruction_data.radius)
 	

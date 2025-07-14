@@ -16,6 +16,7 @@ func print_debug_info():
 
 
 func _ready():
+	add_to_group("terrain_manager")
 	create_curved_terrain()
 	setup_terrain_texture()
 	print_debug_info() # Adicione esta linha

@@ -129,10 +129,8 @@ func unlock_player(player: Player):
 func is_player_unlocked(player: Player) -> bool:
 	return player in unlocked_players
 
-func can_player_act(player: Player) -> bool:
-	var isMyTurn = get_current_player().network_id == player.network_id
-	
-	return is_player_unlocked(player) and isMyTurn
+func can_player_act(player: Player) -> bool:	
+	return is_player_unlocked(player)
 	
 func get_alive_players() -> Array[Player]:
 	var alive: Array[Player] = []
@@ -151,14 +149,6 @@ func _on_projectile_hit(projectile: RigidBody2D, position: Vector2):
 	current_projectile = null
 	if state_machine:
 		state_machine.explosion_occurred()
-
-# Debug methods
-func debug_info():
-	print("🎮 [BATTLE_MANAGER] Current player: ", current_player_index)
-	print("🎮 [BATTLE_MANAGER] Turn timer: ", turn_timer)
-	print("🎮 [BATTLE_MANAGER] Current state: ", state_machine.current_state.name if state_machine and state_machine.current_state else "none")
-
-# ===== DYNAMIC PLAYER SPAWNING =====
 
 func setup_players_multiplayer():
 	print("🎮 [BATTLE] Setup players para multiplayer...")
