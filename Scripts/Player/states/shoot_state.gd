@@ -2,9 +2,7 @@ class_name ShootState extends State
 
 # ===== NETWORK METHODS =====
 @rpc("any_peer", "call_local", "reliable")
-func sync_player_shot(shooter_index: int, angle: float, power: float, position: Vector2, facing_left: bool):
-	print("📡 [SHOOT_STATE] RPC recebido: sync_player_shot(", shooter_index, ", ", angle, ", ", power, ")")
-	
+func sync_player_shot(shooter_index: int, setup_data: Dictionary):	
 	# Validação básica
 	if shooter_index < 0 or shooter_index >= BattleManager.players.size():
 		print("❌ [SHOOT_STATE] Índice de player inválido: ", shooter_index)
@@ -15,22 +13,17 @@ func sync_player_shot(shooter_index: int, angle: float, power: float, position: 
 		print("❌ [SHOOT_STATE] Player não encontrado: ", shooter_index)
 		return
 	
-	# Cria projétil para todos
-	_create_synchronized_projectile(shooter, angle, power, position, facing_left)
-	
+	var shooting_setup = ShootingSetup.from_dict(setup_data)
 	# Emite evento para Battle FSM
+	MessageBus.projectile_launched.emit(shooter, shooting_setup)
 	MessageBus.emit_battle_event("projectile_launched", {
 		"player": shooter,
-		"angle": angle,
-		"power": power,
-		"position": position
+		"angle": shooting_setup.angle,
+		"power": shooting_setup.power,
+		"position": shooting_setup.position
 	})
 	
 	print("✅ [SHOOT_STATE] Tiro sincronizado para: ", shooter.name)
-
-func _create_synchronized_projectile(shooter: Player, angle: float, power: float, position: Vector2, facing_left: bool):
-	"""Cria projétil sincronizado em todos os clients"""
-	ProjectileManager.create_projectile(position, deg_to_rad(angle), power, facing_left, shooter)
 
 # ===== MAIN LOGIC =====
 func enter():
@@ -52,7 +45,8 @@ func enter():
 	# 🔥 NETWORK: Sincroniza tiro com todos (qualquer player no seu turno)
 	if BattleManager.can_player_act(player):
 		BattleManager.log_network("Broadcasting player_shot de " + player.name)
-		sync_player_shot.rpc(shooter_index, angle, power, shoot_position, facing_left)
+		var shooting_setup = ShootingSetup.new(angle, shoot_position, power, facing_left)
+		sync_player_shot.rpc(shooter_index, shooting_setup.to_dict())
 	else:
 		print("❌ [SHOOT_STATE] Player ", player.name, " não pode atirar agora!")
 	

@@ -26,6 +26,7 @@ var transition_to: Node2D
 func _ready():
 	MessageBus.battle_event.connect(_on_battle_event)
 	MessageBus.projectile_collision.connect(_on_projectile_collision)
+	MessageBus.projectile_launched.connect(_on_projectile_launched)
 	
 	_setup_camera()
 
@@ -121,12 +122,13 @@ func return_to_current_player():
 
 # === EVENT HANDLERS ===
 
+func _on_projectile_launched():
+	var projectile = ProjectileManager.current_projectile
+	if projectile:
+		follow_projectile(projectile)
+
 func _on_battle_event(event_type: String, data: Dictionary):
 	match event_type:
-		"projectile_launched":
-			var projectile = ProjectileManager.current_projectile
-			if projectile:
-				follow_projectile(projectile)
 		"projectile_destroyed":
 			_on_projectile_destroyed(data.get("position"))
 		"turn_started":

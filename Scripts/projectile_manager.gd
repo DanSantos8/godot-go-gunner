@@ -3,6 +3,18 @@ extends Node
 var projectile_scene = preload("res://Scenes/projectile.tscn")
 var current_projectile: RigidBody2D = null
 
+func _ready() -> void:
+	MessageBus.projectile_launched.connect(_on_battle_event)
+
+func _on_battle_event(shooter: Player, shooting_setup: ShootingSetup):
+	var angle = shooting_setup.angle
+	var power = shooting_setup.power
+	var position = shooting_setup.position
+	var facing_left = shooter.animated_sprite.flip_h if shooter else false
+	
+	# Cria o projétil
+	current_projectile = create_projectile(position, deg_to_rad(angle), power, facing_left, shooter)
+
 func create_projectile(position: Vector2, angle: float, power: float, facing_left: bool, shooter: Player = null):
 	# 🛡️ VALIDAÇÃO DE SEGURANÇA
 	if not _can_player_shoot(shooter):
