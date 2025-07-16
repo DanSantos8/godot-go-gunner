@@ -47,8 +47,8 @@ func enter():
 		sync_timer_update.rpc(turn_timer)
 	
 	# Conecta evento para detectar tiro
-	if not MessageBus.battle_event.is_connected(_on_battle_event):
-		MessageBus.battle_event.connect(_on_battle_event)
+	if not MessageBus.projectile_launched.is_connected(_on_projectile_launched):
+		MessageBus.projectile_launched.connect(_on_projectile_launched)
 
 func execute(delta: float):
 	if battle_manager.is_authority():
@@ -76,25 +76,22 @@ func exit():
 	
 	battle_manager.lock_all_players()
 	
-	if MessageBus.battle_event.is_connected(_on_battle_event):
-		MessageBus.battle_event.disconnect(_on_battle_event)
+	if MessageBus.projectile_launched.is_connected(_on_projectile_launched):
+		MessageBus.projectile_launched.disconnect(_on_projectile_launched)
 
 # ===== EVENT HANDLERS =====
 
-func _on_battle_event(event_type: String, data: Dictionary):
-	if event_type == "projectile_launched":
-		var shooter = data.get("player")
-		var current_player = get_current_player()
+func _on_projectile_launched(shooter: Player, shooting_setup: ShootingSetup):
+	var current_player = get_current_player()
+	# Validação local
+	if shooter == current_player:
+		log_state("✅ Tiro válido de " + shooter.name)
 		
-		# Validação local
-		if shooter == current_player:
-			log_state("✅ Tiro válido de " + shooter.name)
-			
-			# ⚠️ AUTHORITY ONLY: Força transição via RPC
-			if battle_manager.is_authority():
-				battle_manager.log_network("Broadcasting transition_to_projectile_flying...")
-				sync_transition_to_projectile_flying.rpc()
-			else:
-				log_state("Client detectou tiro (aguardando authority confirmar)")
+		# ⚠️ AUTHORITY ONLY: Força transição via RPC
+		if battle_manager.is_authority():
+			battle_manager.log_network("Broadcasting transition_to_projectile_flying...")
+			sync_transition_to_projectile_flying.rpc()
 		else:
-			log_state("❌ Tiro inválido! Player " + shooter.name + " não é o atual")
+			log_state("Client detectou tiro (aguardando authority confirmar)")
+	else:
+		log_state("❌ Tiro inválido! Player " + shooter.name + " não é o atual")
