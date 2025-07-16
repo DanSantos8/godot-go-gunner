@@ -4,11 +4,18 @@ extends Node
 # ===== SIGNALS =====
 signal battle_event(event_type: String, data: Dictionary)
 signal projectile_launched(shooter: Player, shooting_setup: ShootingSetup)
+signal end_turn()
+
+
 # Signal específico para colisão de projétil
 signal projectile_collision(collision_type: String, position: Vector2, target: Node)
 
 signal turn_timer(seconds: int)
 signal game_over(winner: Player)
+
+
+## Signals para os powerups
+signal powerup_selected(powerup_resource: PowerupResource)
 
 # ===== EMIT METHODS =====
 func emit_battle_event(event_type: String, data: Dictionary):

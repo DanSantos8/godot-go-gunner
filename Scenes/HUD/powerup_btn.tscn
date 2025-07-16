@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://dg5gq6cr71eku"]
+
+[ext_resource type="Script" uid="uid://cx1t3xdnfq83k" path="res://Scripts/Player/HUD/powerup_btn.gd" id="1_xqq18"]
+[ext_resource type="Resource" uid="uid://5aerm5frxply" path="res://Resources/pup_1_resource.tres" id="2_6tyal"]
+
+[node name="PowerupBtn" type="Button"]
+text = "+1"
+script = ExtResource("1_xqq18")
+powerup_resource = ExtResource("2_6tyal")
+
+[connection signal="pressed" from="." to="." method="_on_pressed"]

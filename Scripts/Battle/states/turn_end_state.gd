@@ -3,10 +3,7 @@ class_name TurnEndState extends BattleState
 # ===== NETWORK METHODS =====
 
 @rpc("authority", "call_local", "reliable")
-func sync_turn_ended(new_player_index: int):
-	log_state("📡 RPC recebido: sync_turn_ended(" + str(new_player_index) + ")")
-	
-	# Validação básica
+func sync_turn_ended(new_player_index: int):	
 	if new_player_index < 0 or new_player_index >= battle_manager.players.size():
 		log_state("❌ Índice de player inválido: " + str(new_player_index))
 		return
@@ -14,14 +11,7 @@ func sync_turn_ended(new_player_index: int):
 	# Atualiza índice do player atual
 	battle_manager.current_player_index = new_player_index
 	
-	# Emite evento para UI/logs
-	MessageBus.emit_battle_event("turn_ended", {
-		"previous_player_index": (new_player_index - 1) % battle_manager.players.size(),
-		"new_player_index": new_player_index,
-		"new_player": battle_manager.get_current_player()
-	})
-	
-	# Transita para próximo turno
+	MessageBus.end_turn.emit()
 	state_machine.start_turn()
 
 # ===== MAIN LOGIC =====
@@ -33,7 +23,7 @@ func enter():
 	battle_manager.lock_all_players()
 	
 	# TODOS executam next_player(), mas só Authority broadcasts
-	battle_manager.next_player()  # Remove o if!
+	battle_manager.next_player()
 	var new_player_index = battle_manager.current_player_index
 	
 	if battle_manager.is_authority():
@@ -42,7 +32,6 @@ func enter():
 		
 		sync_turn_ended.rpc(new_player_index)
 	else:
-		# Client executa transição local imediata
 		log_state("Client: Transição local para player: " + str(new_player_index))
 		state_machine.start_turn()
 

@@ -1,14 +1,17 @@
-[gd_scene load_steps=34 format=3 uid="uid://d1gje1pn4nn8r"]
+[gd_scene load_steps=37 format=3 uid="uid://d1gje1pn4nn8r"]
 
 [ext_resource type="Script" uid="uid://diu5krvdha67u" path="res://Scripts/Player/player.gd" id="1_fkybt"]
 [ext_resource type="Texture2D" uid="uid://bvcskge150t0d" path="res://Sprites/Character/Dude_Monster_Idle_4.png" id="2_x3wgy"]
 [ext_resource type="Texture2D" uid="uid://7p33i8ulvam8" path="res://Sprites/Character/Dude_Monster_Walk_6.png" id="3_3smsa"]
 [ext_resource type="Script" uid="uid://crwymxcyyhl2s" path="res://Scripts/aim_ui.gd" id="4_8erm5"]
 [ext_resource type="Script" uid="uid://cb4nvmv0e1e7p" path="res://Scripts/powerbar_label.gd" id="5_f1ek2"]
+[ext_resource type="PackedScene" uid="uid://dg5gq6cr71eku" path="res://Scenes/HUD/powerup_btn.tscn" id="6_qqcod"]
 [ext_resource type="Script" uid="uid://bhecgm81lc5na" path="res://Scripts/Player/state_machine.gd" id="6_x3wgy"]
 [ext_resource type="Script" uid="uid://dpqvlsllfjjaq" path="res://Scripts/Player/states/idle_state.gd" id="7_3smsa"]
 [ext_resource type="Script" uid="uid://dot8a5lt163p2" path="res://Scripts/Player/states/move_state.gd" id="8_8erm5"]
+[ext_resource type="Resource" uid="uid://xh8pbjgjq84n" path="res://Resources/pup_2_resource.tres" id="8_igrcy"]
 [ext_resource type="Script" uid="uid://b1iaym46bq16" path="res://aim_state.gd" id="9_f1ek2"]
+[ext_resource type="Resource" uid="uid://cdkbp3273o8f7" path="res://Resources/pup_3_resource.tres" id="9_fs7ks"]
 [ext_resource type="Script" uid="uid://lj8comtv48jy" path="res://Scripts/Player/states/charge_state.gd" id="10_tx1dd"]
 [ext_resource type="Script" uid="uid://c13nhd5i7vqdi" path="res://Scripts/Player/states/shoot_state.gd" id="11_gymyn"]
 [ext_resource type="Script" uid="uid://hwpdb3erpnw3" path="res://Scripts/Player/states/waiting_turn_state.gd" id="12_pu2lt"]
@@ -217,6 +220,25 @@ offset_top = 86.0
 offset_right = 115.0
 offset_bottom = 109.0
 text = "Health: 100"
+
+[node name="SidePanelPowerups" type="VBoxContainer" parent="PlayerUI"]
+offset_left = 1098.0
+offset_top = 14.0
+offset_right = 1138.0
+offset_bottom = 115.0
+
+[node name="PowerupBtn" parent="PlayerUI/SidePanelPowerups" instance=ExtResource("6_qqcod")]
+layout_mode = 2
+
+[node name="PowerupBtn2" parent="PlayerUI/SidePanelPowerups" instance=ExtResource("6_qqcod")]
+layout_mode = 2
+text = "+2"
+powerup_resource = ExtResource("8_igrcy")
+
+[node name="PowerupBtn3" parent="PlayerUI/SidePanelPowerups" instance=ExtResource("6_qqcod")]
+layout_mode = 2
+text = "+3"
+powerup_resource = ExtResource("9_fs7ks")
 
 [node name="WeaponPivot" type="Node2D" parent="."]
 position = Vector2(8, 8)

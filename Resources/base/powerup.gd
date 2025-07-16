@@ -5,6 +5,3 @@ class_name PowerupResource extends Resource
 @export var powerup_id: String = ""
 @export var powerup_name: String = ""
 @export var powerup_icon: Texture2D
-
-func add_powerup():
-	MessageBus.powerup_selected.emit(self)

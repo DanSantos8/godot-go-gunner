@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://bdcpi0ubabcmf"]
+[gd_scene load_steps=14 format=3 uid="uid://bdcpi0ubabcmf"]
 
 [ext_resource type="Script" uid="uid://bapnr58di4w2a" path="res://Scripts/Battle/battle.gd" id="1_1v1nj"]
 [ext_resource type="PackedScene" uid="uid://dulb6a3l1dgo2" path="res://Scenes/terrain.tscn" id="2_2cush"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://d2g6ang5flj14" path="res://Scripts/Battle/states/explosion_state.gd" id="10_iyva0"]
 [ext_resource type="Script" uid="uid://bbcpexojadrdx" path="res://Scripts/Battle/states/turn_end_state.gd" id="10_stc3i"]
 [ext_resource type="Script" uid="uid://c2euryxsnw0s" path="res://Scripts/turn_timer_hud.gd" id="12_2cush"]
+[ext_resource type="Script" uid="uid://blwckxoklavfn" path="res://Scripts/Player/HUD/powerups_feedback.gd" id="12_5pgm5"]
 [ext_resource type="Script" uid="uid://bmotx2k3mffy2" path="res://Scripts/game_over.gd" id="13_5pgm5"]
 
 [node name="Battle" type="Node2D"]
@@ -52,24 +53,31 @@ metadata/_custom_type_script = "uid://d2g6ang5flj14"
 script = ExtResource("10_stc3i")
 metadata/_custom_type_script = "uid://bbcpexojadrdx"
 
-[node name="TurnTimerHUD" type="CanvasLayer" parent="."]
+[node name="PublicHUD" type="CanvasLayer" parent="."]
 script = ExtResource("12_2cush")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="TurnTimerHUD"]
+[node name="VBoxContainer" type="VBoxContainer" parent="PublicHUD"]
 offset_left = 419.0
 offset_top = 19.0
 offset_right = 641.0
 offset_bottom = 69.0
 
-[node name="TimerLabel" type="Label" parent="TurnTimerHUD/VBoxContainer"]
+[node name="TimerLabel" type="Label" parent="PublicHUD/VBoxContainer"]
 layout_mode = 2
 text = "Remaining Time: "
 horizontal_alignment = 1
 
-[node name="PlayerTurnLabel" type="Label" parent="TurnTimerHUD/VBoxContainer"]
+[node name="PlayerTurnLabel" type="Label" parent="PublicHUD/VBoxContainer"]
 layout_mode = 2
 text = "Your turn"
 horizontal_alignment = 1
+
+[node name="PowerupsFeedback" type="HBoxContainer" parent="PublicHUD"]
+offset_left = 53.0
+offset_top = 485.0
+offset_right = 93.0
+offset_bottom = 525.0
+script = ExtResource("12_5pgm5")
 
 [node name="GameOver" type="CanvasLayer" parent="."]
 visible = false

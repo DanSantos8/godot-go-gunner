@@ -2,18 +2,23 @@ extends Node
 
 var projectile_scene = preload("res://Scenes/projectile.tscn")
 var current_projectile: RigidBody2D = null
+var powerup_queue: Array = []
 
 func _ready() -> void:
-	MessageBus.projectile_launched.connect(_on_battle_event)
+	MessageBus.projectile_launched.connect(_execute_powered_shot)
+	MessageBus.powerup_selected.connect(_add_shooting_powerup)
 
-func _on_battle_event(shooter: Player, shooting_setup: ShootingSetup):
+func _execute_powered_shot(shooter: Player, shooting_setup: ShootingSetup):
 	var angle = shooting_setup.angle
 	var power = shooting_setup.power
 	var position = shooting_setup.position
 	var facing_left = shooter.animated_sprite.flip_h if shooter else false
 	
-	# Cria o projétil
-	current_projectile = create_projectile(position, deg_to_rad(angle), power, facing_left, shooter)
+	var total_projectiles = _calculate_total_projectiles()
+	print("[DEBUG] Total projectiles: ", total_projectiles)
+	for i in range(total_projectiles):
+		await get_tree().create_timer(1).timeout
+		current_projectile = create_projectile(position, deg_to_rad(angle), power, facing_left, shooter)
 
 func create_projectile(position: Vector2, angle: float, power: float, facing_left: bool, shooter: Player = null):
 	# 🛡️ VALIDAÇÃO DE SEGURANÇA
@@ -33,7 +38,6 @@ func create_projectile(position: Vector2, angle: float, power: float, facing_lef
 	return projectile
 
 func _can_player_shoot(shooter: Player) -> bool:
-	# Se não passou shooter, bloqueia por segurança
 	if not shooter:
 		print("❌ [PROJECTILE_MANAGER] Shooter não informado!")
 		return false
@@ -43,10 +47,29 @@ func _can_player_shoot(shooter: Player) -> bool:
 		print("❌ [PROJECTILE_MANAGER] ", shooter.name, " não pode atirar agora!")
 		return false
 	
-	# Verifica se player está vivo
+	# Verifica se player está vivo           
 	var health_component = shooter.get_node("HealthComponent")
 	if health_component and not health_component.is_alive():
 		print("❌ [PROJECTILE_MANAGER] ", shooter.name, " está morto!")
 		return false
 	
 	return true
+
+func _add_shooting_powerup(data: PowerupResource):
+	print("[ENTROU]")
+	powerup_queue.append(data)
+
+func _clear_shooting_powerup():
+	powerup_queue = []
+	
+func _calculate_total_projectiles() -> int:
+	var total = 1
+	if powerup_queue.size() == 0:
+		return total
+		
+	for powerup in powerup_queue:
+		total += powerup.additional_projectiles
+	return total
+
+func _apply_damage_modifiers(base_power: float) -> float:
+	return 25.0
