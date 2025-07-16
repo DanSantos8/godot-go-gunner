@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="PowerupResource" load_steps=2 format=3 uid="uid://5aerm5frxply"]
+
+[ext_resource type="Script" uid="uid://buwjkcdrbph38" path="res://Resources/base/powerup.gd" id="1_qy84q"]
+
+[resource]
+script = ExtResource("1_qy84q")
+damage_multiplier = 0.9
+additional_projectiles = 1
+powerup_id = "pup1"
+powerup_name = "+1"
+metadata/_custom_type_script = "uid://buwjkcdrbph38"
