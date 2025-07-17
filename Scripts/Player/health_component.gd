@@ -7,10 +7,11 @@ var current_health: float
 signal health_changed(current: float, max: float, percentage: float)
 
 func _ready():
+	MessageBus.projectile_collided_with_player.connect(_take_damage)
 	current_health = max_health
 	_update_ui()
 
-func take_damage(amount: float):
+func _take_damage(amount: float):
 	if current_health <= 0:
 		_handle_death()
 		

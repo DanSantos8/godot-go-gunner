@@ -15,10 +15,7 @@ signal projectile_destroyed
 
 func _ready() -> void:
 	angular_velocity = spin_speed
-		
-	# Conecta área de explosão
-	if explosion_area:
-		explosion_area.body_entered.connect(_on_explosion_area_entered)
+	MessageBus.projectile_destroyed.connect(_destroy_projectile)
 	
 	# Monitor para sair da tela
 	_setup_boundary_detection()
@@ -33,13 +30,7 @@ func setup_shot(angle: float, power: float, facing_left: bool):
 
 	var initial_velocity = Vector2(cos_value * velocity_magnitude, sin_value * velocity_magnitude)
 	linear_velocity = initial_velocity
-
-func _on_explosion_area_entered(body: Node):
-	# Área de explosão detecta terrain para destruição
-	# Mas não causa auto-destruição do projétil
-	pass
 	
-# ===== BOUNDARY DETECTION =====
 
 func _setup_boundary_detection():
 	# Usa VisibleOnScreenNotifier2D para detectar saída da tela
@@ -57,20 +48,11 @@ func _on_screen_exited():
 	# Emite signal de boundary
 	MessageBus.emit_projectile_collision("boundary", global_position, null)
 	
-	# Auto-destruição
 	_destroy_projectile()
 
 # ===== DESTRUCTION =====
 
 func _destroy_projectile():
-	print("💥 [PROJECTILE] Destruindo projétil...")
-	
-	# Emite evento final
-	MessageBus.emit_battle_event("projectile_destroyed", {
-		"position": global_position
-	})
-	
-	# Remove da cena
 	queue_free()
 
 # ===== PHYSICS OVERRIDE =====

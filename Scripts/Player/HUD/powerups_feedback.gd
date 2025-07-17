@@ -21,6 +21,6 @@ func _add_powerup_feedback(powerup: PowerupResource):
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	
 	add_child(label)
-
+	
 func _clean_up_powerup_feedback():
 	queue_free()

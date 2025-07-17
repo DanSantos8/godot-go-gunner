@@ -56,7 +56,7 @@ func _start_visual_effects():
 	
 	# TODO: Implementar futuramente
 	# - Particle effects
-	# - Screen shake  
+	# - Screen shake
 	# - Sound effects
 	# - Slow motion
 	# - Camera effects

@@ -7,6 +7,7 @@ var powerup_queue: Array = []
 func _ready() -> void:
 	MessageBus.projectile_launched.connect(_execute_powered_shot)
 	MessageBus.powerup_selected.connect(_add_shooting_powerup)
+	MessageBus.projectile_collision.connect(_on_projectile_collision)
 
 func _execute_powered_shot(shooter: Player, shooting_setup: ShootingSetup):
 	var angle = shooting_setup.angle
@@ -17,7 +18,6 @@ func _execute_powered_shot(shooter: Player, shooting_setup: ShootingSetup):
 	var total_projectiles = _calculate_total_projectiles()
 	print("[DEBUG] Total projectiles: ", total_projectiles)
 	for i in range(total_projectiles):
-		await get_tree().create_timer(1).timeout
 		current_projectile = create_projectile(position, deg_to_rad(angle), power, facing_left, shooter)
 
 func create_projectile(position: Vector2, angle: float, power: float, facing_left: bool, shooter: Player = null):
@@ -56,7 +56,7 @@ func _can_player_shoot(shooter: Player) -> bool:
 	return true
 
 func _add_shooting_powerup(data: PowerupResource):
-	print("[ENTROU]")
+	print("[ENTROU]", powerup_queue.size())
 	powerup_queue.append(data)
 
 func _clear_shooting_powerup():
@@ -73,3 +73,12 @@ func _calculate_total_projectiles() -> int:
 
 func _apply_damage_modifiers(base_power: float) -> float:
 	return 25.0
+	
+func _on_projectile_collision(body: String, position: Vector2):
+	if not body: 
+		print("[Projectile Manager]: Body not indentified")
+	
+	match body:
+		"Player": MessageBus.projectile_collided_with_player.emit(25.0)
+		"Terrain": MessageBus.projectile_collided_with_terrain.emit(position)
+		_: MessageBus.projectile_destroyed.emit()

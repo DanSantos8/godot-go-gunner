@@ -9,9 +9,6 @@ var max_flight_time: float = 15.0
 func sync_projectile_flying_started():
 	log_state("📡 RPC recebido: sync_projectile_flying_started")
 	
-	# LOCK TOTAL - nenhum player pode agir
-	battle_manager.lock_all_players()
-	
 	# Conecta collision handler (todos os clients precisam escutar)
 	if not MessageBus.projectile_collision.is_connected(_on_projectile_collision):
 		MessageBus.projectile_collision.connect(_on_projectile_collision)

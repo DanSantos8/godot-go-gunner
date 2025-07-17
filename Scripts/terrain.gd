@@ -4,6 +4,9 @@ extends StaticBody2D
 @onready var terrain_visual = $TerrainVisual
 @onready var terrain_collision = $TerrainCollision
 
+# TODO refactor
+@export var destruction_data: DestructionData
+
 func print_debug_info():
 	pass
 	# print("Pontos do terreno visual: ", terrain_visual.polygon.size())
@@ -19,7 +22,12 @@ func _ready():
 	add_to_group("terrain_manager")
 	create_curved_terrain()
 	setup_terrain_texture()
-	print_debug_info() # Adicione esta linha
+	MessageBus.projectile_collided_with_terrain.connect(_destroy_circular)
+	
+	if not destruction_data:
+		destruction_data = DestructionData.new()
+		destruction_data.type = DestructionData.DestructionType.CIRCULAR
+		destruction_data.radius = 15.0
 
 func create_curved_terrain():
 	var curve = terrain_path.curve
@@ -57,14 +65,7 @@ func setup_terrain_texture():
 	terrain_visual.texture_scale = Vector2(2, 2)
 	terrain_visual.antialiased = true
 	
-func apply_destruction(position: Vector2, destruction_data: DestructionData):
-	match destruction_data.type:
-		DestructionData.DestructionType.CIRCULAR:
-			_destroy_circular(position, destruction_data)
-		_:
-			_destroy_circular(position, destruction_data)
-			
-func _destroy_circular(pos: Vector2, data: DestructionData):	
+func _destroy_circular(pos: Vector2):	
 	# Converte posição global para local
 	var local_pos = to_local(pos)
 	
@@ -72,7 +73,7 @@ func _destroy_circular(pos: Vector2, data: DestructionData):
 	var circle = []
 	for i in range(16):
 		var angle = i * 2.0 * PI / 16
-		var point = local_pos + Vector2(cos(angle), sin(angle)) * data.radius
+		var point = local_pos + Vector2(cos(angle), sin(angle)) * destruction_data.radius
 		circle.append(point)
 	
 	# Pega o terreno atual
@@ -84,6 +85,7 @@ func _destroy_circular(pos: Vector2, data: DestructionData):
 	# Atualiza com TODOS os fragmentos
 	if result.size() > 0:
 		_update_terrain_with_fragments(result, terrain_visual, terrain_collision)
+		MessageBus.projectile_destroyed.emit()
 
 func _update_terrain_with_fragments(fragments: Array, visual_node: Polygon2D, collision_node: CollisionPolygon2D):
 	# Encontra o maior fragmento (ilha principal)
