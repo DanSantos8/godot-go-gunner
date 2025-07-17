@@ -9,6 +9,7 @@ func _ready() -> void:
 	MessageBus.projectile_launched.connect(_execute_powered_shot)
 	MessageBus.powerup_selected.connect(_add_shooting_powerup)
 	MessageBus.projectile_collision.connect(_on_projectile_collision)
+	MessageBus.end_turn.connect(_clear_shooting_powerup)
 
 func _execute_powered_shot(shooter: Player, shooting_setup: ShootingSetup):
 	var angle = shooting_setup.angle
@@ -19,11 +20,8 @@ func _execute_powered_shot(shooter: Player, shooting_setup: ShootingSetup):
 	var total_projectiles = _calculate_total_projectiles()
 	pool_size = total_projectiles 
 	for projectile in range(total_projectiles):
+		current_projectile = create_projectile(position, deg_to_rad(angle), power, facing_left, shooter)
 		await get_tree().create_timer(0.5).timeout
-		var new_projectile = create_projectile(position, deg_to_rad(angle), power, facing_left, shooter)
-		
-		if projectile == 0:
-			current_projectile = new_projectile
 			
 func create_projectile(position: Vector2, angle: float, power: float, facing_left: bool, shooter: Player = null):
 	var projectile = projectile_scene.instantiate()
@@ -32,6 +30,8 @@ func create_projectile(position: Vector2, angle: float, power: float, facing_lef
 	
 	projectile.global_position = position
 	projectile.setup_shot(angle, power, facing_left)
+	
+	current_projectile = projectile
 	
 	print("🚀 [PROJECTILE_MANAGER] Projétil criado por: ", shooter.name if shooter else "unknown")
 	return projectile

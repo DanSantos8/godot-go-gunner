@@ -14,3 +14,5 @@ func _on_body_entered(body: Node2D) -> void:
 @rpc("authority", "call_local", "reliable")
 func _sync_projectile_collision(body: String, position: Vector2):
 	MessageBus.projectile_collision.emit(body, position)
+	var projectile = get_parent()
+	projectile.queue_free()

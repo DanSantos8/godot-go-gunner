@@ -122,8 +122,9 @@ func return_to_current_player():
 
 # === EVENT HANDLERS ===
 
-func _on_projectile_launched():
+func _on_projectile_launched(shooter: Player, shooting_setup: ShootingSetup):
 	var projectile = ProjectileManager.current_projectile
+	print("[ENTROU NO SIGNALLLLL]")
 	if projectile:
 		follow_projectile(projectile)
 
