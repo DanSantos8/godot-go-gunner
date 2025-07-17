@@ -19,9 +19,6 @@ func sync_turn_ended(new_player_index: int):
 func enter():
 	log_state("Finalizando turno do player " + str(battle_manager.current_player_index))
 	
-	# Garante que todos players estão bloqueados
-	battle_manager.lock_all_players()
-	
 	# TODOS executam next_player(), mas só Authority broadcasts
 	battle_manager.next_player()
 	var new_player_index = battle_manager.current_player_index

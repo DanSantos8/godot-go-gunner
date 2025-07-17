@@ -17,9 +17,6 @@ func sync_explosion_finished():
 func enter():
 	log_state("💥 Explosão em andamento...")
 	
-	# Lock players (redundante, mas garante)
-	battle_manager.lock_all_players()
-	
 	# TODOS iniciam timer local (authority controlará via RPC)
 	explosion_timer = explosion_duration
 	

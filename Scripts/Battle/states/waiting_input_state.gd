@@ -71,11 +71,7 @@ func execute(delta: float):
 	# CLIENT: apenas aguarda RPC do timer
 	# (não faz nada, timer vem via RPC)
 
-func exit():
-	log_state("Saindo do WaitingInput...")
-	
-	battle_manager.lock_all_players()
-	
+func exit():	
 	if MessageBus.projectile_launched.is_connected(_on_projectile_launched):
 		MessageBus.projectile_launched.disconnect(_on_projectile_launched)
 
