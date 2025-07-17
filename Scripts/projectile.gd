@@ -46,9 +46,9 @@ func _on_screen_exited():
 	has_collided = true
 	
 	# Emite signal de boundary
-	MessageBus.emit_projectile_collision("boundary", global_position, null)
+	# MessageBus.emit_projectile_collision("boundary", global_position, null)
 	
-	_destroy_projectile()
+	# _destroy_projectile()
 
 # ===== DESTRUCTION =====
 
