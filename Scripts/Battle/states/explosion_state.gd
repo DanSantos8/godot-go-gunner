@@ -30,7 +30,6 @@ func enter():
 	_start_visual_effects()
 
 func execute(delta: float):
-	# ⚠️ AUTHORITY ONLY: Controla quando acabar
 	if battle_manager.is_authority():
 		explosion_timer -= delta
 		

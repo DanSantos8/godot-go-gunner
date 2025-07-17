@@ -13,11 +13,9 @@ func sync_projectile_flying_started():
 	if not MessageBus.projectile_collision.is_connected(_on_projectile_collision):
 		MessageBus.projectile_collision.connect(_on_projectile_collision)
 	
-	log_state("✅ Todos players bloqueados - projétil em voo")
-
 @rpc("authority", "call_local", "reliable")
 func sync_timeout_end_turn():
-	log_state("📡 RPC recebido: sync_timeout_end_turn")
+	# log_state("📡 RPC recebido: sync_timeout_end_turn")
 	# Timeout - força fim do turno
 	state_machine.end_turn()
 
@@ -27,6 +25,7 @@ func enter():
 	log_state("Projétil em voo - aguardando impacto...")
 	
 	battle_manager.log_network("Broadcasting projectile_flying_started...")
+	MessageBus.projectiles_pool_empty.connect(_on_projectile_collision)
 	sync_projectile_flying_started.rpc()
 	
 	# AUTHORITY: inicia timer de segurança
@@ -50,11 +49,10 @@ func exit():
 
 # ===== EVENT HANDLERS =====
 
-func _on_projectile_collision(collision_type: String, position: Vector2, target: Node):
+func _on_projectile_collision():
+	print("[ENTROU NO SIGNAL]")
 	# ⚠️ AUTHORITY ONLY: Decide quando explodir
 	if battle_manager.is_authority():
-		log_state("Authority detectou colisão: " + collision_type)
-		battle_manager.log_network("Broadcasting explosion_occurred...")
 		state_machine.explosion_occurred()
 	else:
 		log_state("Client detectou colisão (ignorando - aguardando authority)")

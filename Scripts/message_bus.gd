@@ -12,6 +12,7 @@ signal projectile_collision(collision_type: String, position: Vector2)
 signal projectile_collided_with_player(damage_amount: float)
 signal projectile_collided_with_terrain(position: Vector2)
 signal projectile_destroyed() # Unknown collisions or after applying the explosion effects
+signal projectiles_pool_empty()
 
 # Battle Manager signals
 signal turn_timer(seconds: int)
