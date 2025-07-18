@@ -7,9 +7,14 @@ signal projectile_launched(shooter: Player, shooting_setup: ShootingSetup)
 signal end_turn()
 
 
-# Signal específico para colisão de projétil
-signal projectile_collision(collision_type: String, position: Vector2, target: Node)
+# Projectile Collision Signals
+signal projectile_collision(collision_type: String, position: Vector2)
+signal projectile_collided_with_player(damage_amount: float)
+signal projectile_collided_with_terrain(position: Vector2)
+signal projectile_destroyed() # Unknown collisions or after applying the explosion effects
+signal projectiles_pool_empty()
 
+# Battle Manager signals
 signal turn_timer(seconds: int)
 signal game_over(winner: Player)
 
@@ -21,15 +26,6 @@ signal powerup_selected(powerup_resource: PowerupResource)
 func emit_battle_event(event_type: String, data: Dictionary):
 	battle_event.emit(event_type, data)
 	_log_event(event_type, data)
-
-# Método específico para colisão de projétil
-func emit_projectile_collision(collision_type: String, position: Vector2, target: Node = null):
-	projectile_collision.emit(collision_type, position, target)
-	_log_event("projectile_collision", {
-		"type": collision_type,
-		"position": position,
-		"target": target.name if target else "none"
-	})
 
 # ===== LOGGING =====
 func _log_event(event_type: String, data: Dictionary):

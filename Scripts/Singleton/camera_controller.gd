@@ -122,8 +122,9 @@ func return_to_current_player():
 
 # === EVENT HANDLERS ===
 
-func _on_projectile_launched():
+func _on_projectile_launched(shooter: Player, shooting_setup: ShootingSetup):
 	var projectile = ProjectileManager.current_projectile
+	print("[ENTROU NO SIGNALLLLL]")
 	if projectile:
 		follow_projectile(projectile)
 
@@ -136,7 +137,7 @@ func _on_battle_event(event_type: String, data: Dictionary):
 			if player:
 				follow_player(player)
 
-func _on_projectile_collision(collision_type: String, position: Vector2, target: Node):
+func _on_projectile_collision(collision_type: String, position: Vector2):
 	await get_tree().create_timer(1.0).timeout
 	return_to_current_player()
 

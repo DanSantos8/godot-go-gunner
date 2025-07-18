@@ -1,10 +1,11 @@
-extends CharacterBody2D
-class_name Player
+class_name Player extends CharacterBody2D
+
 
 signal player_flipped(flip_h: bool)
 
 var network_id: int = -1
 
+@export var player_stats: CharacterResource
 
 @onready var state_machine = $StateMachine
 @onready var animated_sprite = $PlayerAnimation
@@ -14,6 +15,7 @@ var network_id: int = -1
 @onready var aim_ui = $PlayerUI/AimUI
 @onready var powerbar_label = $PlayerUI/PowerbarLabel
 @onready var player_ui = $PlayerUI
+@onready var health_component = $HealthComponent
 
 var shooting_angle = 0
 @export var gravity: float = 10000.0
@@ -22,6 +24,8 @@ var shooting_angle = 0
 func _ready():
 	state_machine.init(self)
 	$Camera2D.enabled = false
+	
+	health_component.character_resource = player_stats
 	
 func _process(delta: float):
 	# Verifica se é o player LOCAL E se é seu turno

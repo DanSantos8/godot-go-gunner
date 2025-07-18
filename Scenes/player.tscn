@@ -1,6 +1,7 @@
-[gd_scene load_steps=37 format=3 uid="uid://d1gje1pn4nn8r"]
+[gd_scene load_steps=38 format=3 uid="uid://d1gje1pn4nn8r"]
 
 [ext_resource type="Script" uid="uid://diu5krvdha67u" path="res://Scripts/Player/player.gd" id="1_fkybt"]
+[ext_resource type="Resource" uid="uid://8erd8tjymi68" path="res://Resources/player_resource.tres" id="2_qqcod"]
 [ext_resource type="Texture2D" uid="uid://bvcskge150t0d" path="res://Sprites/Character/Dude_Monster_Idle_4.png" id="2_x3wgy"]
 [ext_resource type="Texture2D" uid="uid://7p33i8ulvam8" path="res://Sprites/Character/Dude_Monster_Walk_6.png" id="3_3smsa"]
 [ext_resource type="Script" uid="uid://crwymxcyyhl2s" path="res://Scripts/aim_ui.gd" id="4_8erm5"]
@@ -168,9 +169,10 @@ properties/3/path = NodePath("PlayerAnimation:flip_h")
 properties/3/spawn = true
 properties/3/replication_mode = 1
 
-[node name="Player" type="CharacterBody2D"]
+[node name="Player" type="CharacterBody2D" groups=["players"]]
 collision_layer = 8
 script = ExtResource("1_fkybt")
+player_stats = ExtResource("2_qqcod")
 
 [node name="PlayerAnimation" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_jlqi0")

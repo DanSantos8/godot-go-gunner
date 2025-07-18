@@ -17,9 +17,6 @@ func sync_explosion_finished():
 func enter():
 	log_state("💥 Explosão em andamento...")
 	
-	# Lock players (redundante, mas garante)
-	battle_manager.lock_all_players()
-	
 	# TODOS iniciam timer local (authority controlará via RPC)
 	explosion_timer = explosion_duration
 	
@@ -30,7 +27,6 @@ func enter():
 	_start_visual_effects()
 
 func execute(delta: float):
-	# ⚠️ AUTHORITY ONLY: Controla quando acabar
 	if battle_manager.is_authority():
 		explosion_timer -= delta
 		
@@ -56,7 +52,7 @@ func _start_visual_effects():
 	
 	# TODO: Implementar futuramente
 	# - Particle effects
-	# - Screen shake  
+	# - Screen shake
 	# - Sound effects
 	# - Slow motion
 	# - Camera effects
