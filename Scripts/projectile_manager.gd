@@ -2,8 +2,12 @@ extends Node
 
 var projectile_scene = preload("res://Scenes/projectile.tscn")
 var current_projectile: RigidBody2D = null
+
+# powerups - buffs
 var powerup_queue: Array = []
 var pool_size = 0
+# TODO refactor to work as burst_projectiles
+var trident_projectiles: bool = false
 
 func _ready() -> void:
 	MessageBus.projectile_launched.connect(_execute_powered_shot)
@@ -17,32 +21,51 @@ func _execute_powered_shot(shooter: Player, shooting_setup: ShootingSetup):
 	var position = shooting_setup.position
 	var facing_left = shooter.animated_sprite.flip_h if shooter else false
 	
-	var total_projectiles = _calculate_total_projectiles()
-	pool_size = total_projectiles 
-	for projectile in range(total_projectiles):
+	var additional_projectiles = _calculate_additional_projectiles()
+	pool_size = additional_projectiles * 3 if trident_projectiles else additional_projectiles
+	for projectile in range(additional_projectiles):
 		current_projectile = create_projectile(position, deg_to_rad(angle), power, facing_left, shooter)
-		await get_tree().create_timer(0.5).timeout
-			
+		await get_tree().create_timer(1).timeout
+
 func create_projectile(position: Vector2, angle: float, power: float, facing_left: bool, shooter: Player = null):
-	var projectile = projectile_scene.instantiate()
+	var projectiles = []
+	var angle_spread = deg_to_rad(5)
+	var angles = [angle - angle_spread, angle, angle + angle_spread]
+	var powers = [power + 1.5, power, power - 1]
 	
+	if trident_projectiles:
+		for i in range(3):
+			var projectile = projectile_scene.instantiate()
+			get_tree().current_scene.add_child(projectile)
+			
+			projectile.global_position = position
+			projectile.setup_shot(angles[i], powers[i], facing_left)
+			projectiles.append(projectile)
+		current_projectile = projectiles[0]
+		return current_projectile
+	
+	# single shot
+	var projectile = projectile_scene.instantiate()
 	get_tree().current_scene.add_child(projectile)
 	
 	projectile.global_position = position
 	projectile.setup_shot(angle, power, facing_left)
-	
+	projectiles.append(projectile)
 	current_projectile = projectile
-	
-	print("🚀 [PROJECTILE_MANAGER] Projétil criado por: ", shooter.name if shooter else "unknown")
-	return projectile
-	
+	return current_projectile
+		
 func _add_shooting_powerup(data: PowerupResource):
-	powerup_queue.append(data)
-	
+	if data.powerup_id == 'pup3':
+		trident_projectiles = true
+	else:
+		powerup_queue.append(data)
+		
 func _clear_shooting_powerup():
 	powerup_queue = []
+	trident_projectiles = false
+	pool_size = 0
 	
-func _calculate_total_projectiles() -> int:
+func _calculate_additional_projectiles() -> int:
 	var total = 1
 	if powerup_queue.size() == 0:
 		return total

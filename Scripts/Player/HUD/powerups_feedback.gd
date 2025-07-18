@@ -23,4 +23,5 @@ func _add_powerup_feedback(powerup: PowerupResource):
 	add_child(label)
 	
 func _clean_up_powerup_feedback():
-	queue_free()
+	for child in get_children():
+		child.queue_free()
