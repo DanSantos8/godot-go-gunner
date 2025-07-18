@@ -17,11 +17,11 @@ func sync_timeout_end_turn():
 
 func enter():
 	log_state("Projétil em voo - aguardando impacto...")
-	
-	battle_manager.log_network("Broadcasting projectile_flying_started...")
-	sync_projectile_flying_started.rpc()
-	safety_timer = max_flight_time
-
+	if BattleManager.is_authority():
+		battle_manager.log_network("Broadcasting projectile_flying_started...")
+		sync_projectile_flying_started.rpc()
+		safety_timer = max_flight_time
+		
 func execute(delta: float):
 	if battle_manager.is_authority():
 		safety_timer -= delta

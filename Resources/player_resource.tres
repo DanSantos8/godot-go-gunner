@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CharacterResource" load_steps=2 format=3 uid="uid://8erd8tjymi68"]
+
+[ext_resource type="Script" uid="uid://5vd5qmaob2ff" path="res://Resources/base/character_resource.gd" id="1_gak4i"]
+
+[resource]
+script = ExtResource("1_gak4i")
+health = 1000
+stamina = 250
+attack = 300
+defense = 300
+agility = 300
+luck = 300
+damage = 150
+armor = 150
+metadata/_custom_type_script = "uid://5vd5qmaob2ff"

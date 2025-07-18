@@ -137,7 +137,7 @@ func _on_battle_event(event_type: String, data: Dictionary):
 			if player:
 				follow_player(player)
 
-func _on_projectile_collision(collision_type: String, position: Vector2, target: Node):
+func _on_projectile_collision(collision_type: String, position: Vector2):
 	await get_tree().create_timer(1.0).timeout
 	return_to_current_player()
 

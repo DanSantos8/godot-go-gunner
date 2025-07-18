@@ -9,10 +9,11 @@ func _on_body_entered(body: Node2D) -> void:
 	print("👑 Authority processando colisão...")
 	
 	# TODO add shooter base damage
-	_sync_projectile_collision.rpc(body.name, global_position)
+	sync_projectile_collision.rpc(EntityHelper.get_entity_type(body), global_position)
 	
 @rpc("authority", "call_local", "reliable")
-func _sync_projectile_collision(body: String, position: Vector2):
-	MessageBus.projectile_collision.emit(body, position)
+func sync_projectile_collision(body_name: String, position: Vector2):
+	MessageBus.projectile_collision.emit(body_name, position)
+
 	var projectile = get_parent()
 	projectile.queue_free()
