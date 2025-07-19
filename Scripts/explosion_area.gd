@@ -12,6 +12,8 @@ func _on_body_entered(body: Node2D) -> void:
 	if body is Player:
 		player_id = body.network_id
 	
+	
+	print("[ENTITY TYPE]: ", body.name)
 	# TODO add shooter base damage
 	sync_projectile_collision.rpc(EntityHelper.get_entity_type(body), global_position, player_id)
 	

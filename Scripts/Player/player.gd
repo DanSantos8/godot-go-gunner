@@ -18,7 +18,7 @@ var network_id: int = -1
 @onready var health_component = $HealthComponent
 
 var shooting_angle = 0
-@export var gravity: float = 10000.0
+@export var gravity: float = 150.0
 @export var speed: float = 20.00
 
 func _ready():

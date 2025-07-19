@@ -7,5 +7,7 @@ static func get_entity_type(body: Node2D) -> String:
 		return "NPC"
 	elif body.name == "Terrain":
 		return "Terrain"
+	elif body.is_in_group('terrain'):
+		return "Terrain"
 	else:
 		return "Unknown"
