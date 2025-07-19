@@ -23,6 +23,17 @@ BattleManager="*res://Scripts/Battle/battle_manager.gd"
 CameraController="*res://Scripts/Singleton/camera_controller.gd"
 NetworkManager="*res://Scripts/Singleton/network_manager.gd"
 
+[file_customization]
+
+folder_colors={
+"res://Scripts/Battle/": "purple",
+"res://Scripts/Lobby/": "green",
+"res://Scripts/Player/": "blue",
+"res://Scripts/Singleton/": "orange",
+"res://Scripts/Terrain/": "gray",
+"res://Scripts/Utils/": "pink"
+}
+
 [input]
 
 move_right={

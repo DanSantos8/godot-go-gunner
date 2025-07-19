@@ -1,4 +1,3 @@
-# Scripts/Resources/ShootingSetup.gd
 class_name ShootingSetup
 extends RefCounted
 
