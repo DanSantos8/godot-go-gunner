@@ -9,7 +9,6 @@ class_name CharacterResource extends Resource
 @export var damage: int = 0
 @export var armor: int = 0
 
-# Computed Properties (calculadas dinamicamente)
 var base_damage: float:
 	get:
 		return damage + (attack * 0.2)
@@ -20,17 +19,13 @@ var damage_reduction: float:
 
 var critical_chance: float:
 	get:
-		return luck * 0.01  # 1% por ponto de luck, ajuste conforme necessário
+		return luck * 0.01
 
-# Se stamina também é calculada:
 var max_stamina: int:
 	get:
-		return stamina * 10  # Exemplo: 1 ponto = 10 stamina máxima
+		return stamina * 10
 		
-# Adicione estes métodos na classe CharacterResource
-
 func to_dict() -> Dictionary:
-	"""Converte CharacterResource para Dictionary"""
 	return {
 		"health": health,
 		"stamina": stamina,
@@ -43,7 +38,6 @@ func to_dict() -> Dictionary:
 	}
 
 static func from_dict(data: Dictionary) -> CharacterResource:
-	"""Cria CharacterResource a partir de Dictionary"""
 	var character = CharacterResource.new()
 	
 	character.health = data.get("health", 0)

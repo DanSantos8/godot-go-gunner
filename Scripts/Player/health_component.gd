@@ -48,8 +48,10 @@ func _ready():
 	
 	_update_ui()
 
-func _take_damage(amount: float):
-	print("[HEALTH COMPONENT]")
+func _take_damage(target_id: int, amount: float):
+	if target_id != get_parent().network_id: 
+		return
+		
 	if current_health <= 0:
 		_handle_death()
 		return
