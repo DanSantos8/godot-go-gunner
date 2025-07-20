@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3 uid="uid://d1gje1pn4nn8r"]
+[gd_scene load_steps=38 format=3 uid="uid://d1gje1pn4nn8r"]
 
 [ext_resource type="Script" uid="uid://diu5krvdha67u" path="res://Scripts/Player/player.gd" id="1_fkybt"]
 [ext_resource type="Resource" uid="uid://8erd8tjymi68" path="res://Resources/player_resource.tres" id="2_qqcod"]
@@ -169,12 +169,8 @@ properties/3/path = NodePath("PlayerAnimation:flip_h")
 properties/3/spawn = true
 properties/3/replication_mode = 1
 
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_qqcod"]
-radius = 6.0
-height = 24.0
-
 [node name="Player" type="CharacterBody2D" groups=["players"]]
-collision_layer = 64
+collision_layer = 8
 script = ExtResource("1_fkybt")
 player_stats = ExtResource("2_qqcod")
 
@@ -285,11 +281,3 @@ script = ExtResource("13_ukyrk")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_ukyrk")
-
-[node name="DamageZone" type="Area2D" parent="."]
-collision_layer = 8
-collision_mask = 0
-
-[node name="DamageShape" type="CollisionShape2D" parent="DamageZone"]
-position = Vector2(0, 4)
-shape = SubResource("CapsuleShape2D_qqcod")
