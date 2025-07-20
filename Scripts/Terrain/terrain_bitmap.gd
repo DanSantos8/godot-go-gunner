@@ -1,4 +1,4 @@
-# Scripts/terrain_bitmap.gd - V2.0
+# Scripts/terrain_bitmap.gd - V2.1 (Otimizado)
 class_name TerrainBitmap extends StaticBody2D
 
 # Referencias de nodes
@@ -9,6 +9,10 @@ var terrain_collision: CollisionPolygon2D
 var terrain_bitmap: BitMap
 var terrain_image: Image
 var terrain_texture: ImageTexture 
+
+# ===== CACHE DE MÁSCARAS (OTIMIZAÇÃO) =====
+var _mask_cache: Dictionary = {}
+var _is_updating_texture: bool = false
 
 func _ready():
 	# Conecta signal de colisão do projétil
@@ -26,6 +30,9 @@ func _ready():
 	if texture:
 		_create_bitmap_from_texture(texture)
 		_generate_collision()
+	
+	# Pre-carrega máscaras comuns para cache
+	_preload_common_masks()
 
 func _create_bitmap_from_texture(texture: Texture2D):
 	"""Converte textura para BitMap editável"""
@@ -63,126 +70,192 @@ func _generate_collision():
 	
 	terrain_collision.polygon = centered_polygon
 
+# ===== CACHE SYSTEM (OTIMIZAÇÃO) =====
+func _preload_common_masks():
+	"""Pre-carrega máscaras comuns no cache"""
+	
+	print("🔄 [TERRAIN OPT] Pre-carregando máscaras...")
+	
+	var common_masks = [
+		"res://Sprites/Craters/hole-crater.png",
+		"res://Sprites/Craters/grass-hole.png"
+	]
+	
+	for mask_path in common_masks:
+		_load_mask_image_cached(mask_path)
+	
+	print("✅ [TERRAIN OPT] Cache inicializado com ", _mask_cache.size(), " máscaras")
+
+func _load_mask_image_cached(path: String) -> Image:
+	"""Carrega máscara com cache"""
+	
+	# Se já está no cache, retorna
+	if _mask_cache.has(path):
+		return _mask_cache[path]
+	
+	# Carrega e valida
+	if not ResourceLoader.exists(path):
+		print("❌ [TERRAIN OPT] Arquivo não encontrado: ", path)
+		return null
+	
+	var texture = load(path) as Texture2D
+	if not texture:
+		print("❌ [TERRAIN OPT] Erro ao carregar textura: ", path)
+		return null
+	
+	var image = texture.get_image()
+	if not image:
+		print("❌ [TERRAIN OPT] Erro ao extrair imagem: ", path)
+		return null
+	
+	# Adiciona ao cache
+	_mask_cache[path] = image
+	print("💾 [TERRAIN OPT] Máscara armazenada no cache: ", path, " (", image.get_size(), ")")
+	
+	return image
+
 # ===== SIGNAL HANDLERS =====
 func _on_projectile_collision(collision_position: Vector2):
 	"""Cria cratera quando projétil colide"""
 	
 	var local_position = to_local(collision_position)
 	
-	# Aplica crateras usando máscaras PNG
-	apply_crater_masks(
+	# Aplica crateras usando máscaras PNG (versão otimizada)
+	apply_crater_masks_optimized(
 		local_position,
 		"res://Sprites/Craters/hole-crater.png",
 		"res://Sprites/Craters/grass-hole.png"
 	)
 
-# ===== API PÚBLICA V2.0 =====
-func apply_crater_masks(position: Vector2, hole_mask_path: String, texture_mask_path: String):
-	"""Aplica cratera usando 2 máscaras PNG"""
+# ===== API PÚBLICA V2.1 (OTIMIZADA) =====
+func apply_crater_masks_optimized(position: Vector2, hole_mask_path: String, texture_mask_path: String):
+	"""Aplica cratera usando 2 máscaras PNG com otimizações"""
 	
-	print("🕳️ [TERRAIN V2] Aplicando crateras com máscaras...")
-	print("   Posição: ", position)
-	print("   Hole: ", hole_mask_path)
-	print("   Texture: ", texture_mask_path)
+	if _is_updating_texture:
+		print("⚠️ [TERRAIN OPT] Update em andamento, ignorando...")
+		return
 	
-	# Carrega as máscaras
-	var hole_mask = _load_mask_image(hole_mask_path)
-	var texture_mask = _load_mask_image(texture_mask_path)
+	_is_updating_texture = true
+	
+	print("🚀 [TERRAIN OPT] Aplicando crateras otimizadas...")
+	var start_time = Time.get_ticks_msec()
+	
+	# Carrega as máscaras do cache
+	var hole_mask = _load_mask_image_cached(hole_mask_path)
+	var texture_mask = _load_mask_image_cached(texture_mask_path)
 	
 	if not hole_mask or not texture_mask:
-		print("❌ [TERRAIN V2] Erro ao carregar máscaras!")
+		print("❌ [TERRAIN OPT] Erro ao carregar máscaras!")
+		_is_updating_texture = false
 		return
 	
 	# Converte posição world para bitmap coordinates
 	var sprite_size = terrain_sprite.texture.get_size()
 	var bitmap_position = position + sprite_size / 2.0
 	
-	# Aplica as máscaras na ordem correta
-	_apply_texture_mask(bitmap_position, texture_mask)  # Primeiro: textura de fundo
-	_apply_hole_mask(bitmap_position, hole_mask)        # Segundo: remove buraco
+	# Calcula bounding box otimizada (maior máscara determina área)
+	var max_mask_size = Vector2(
+		max(hole_mask.get_size().x, texture_mask.get_size().x),
+		max(hole_mask.get_size().y, texture_mask.get_size().y)
+	)
 	
-	# Atualiza textura e colisão uma vez só
+	var processing_area = _calculate_processing_area(bitmap_position, max_mask_size)
+	
+	# Aplica as máscaras na área otimizada
+	_apply_texture_mask_optimized(bitmap_position, texture_mask, processing_area)
+	_apply_hole_mask_optimized(bitmap_position, hole_mask, processing_area)
+	
+	# Atualiza textura uma vez só
 	terrain_texture.update(terrain_image)
 	_generate_collision()
 	
-	print("✅ [TERRAIN V2] Cratera aplicada com sucesso!")
+	var end_time = Time.get_ticks_msec()
+	var elapsed_ms = end_time - start_time
+	
+	print("✅ [TERRAIN OPT] Cratera aplicada em ", elapsed_ms, "ms")
+	_is_updating_texture = false
 
-# ===== MÉTODOS INTERNOS V2.0 =====
-func _load_mask_image(path: String) -> Image:
-	"""Carrega e valida imagem de máscara"""
+# ===== MÉTODOS OTIMIZADOS =====
+func _calculate_processing_area(center_position: Vector2, mask_size: Vector2) -> Rect2i:
+	"""Calcula área mínima necessária para processamento"""
 	
-	if not ResourceLoader.exists(path):
-		print("❌ [TERRAIN V2] Arquivo não encontrado: ", path)
-		return null
-	
-	var texture = load(path) as Texture2D
-	if not texture:
-		print("❌ [TERRAIN V2] Erro ao carregar textura: ", path)
-		return null
-	
-	var image = texture.get_image()
-	if not image:
-		print("❌ [TERRAIN V2] Erro ao extrair imagem: ", path)
-		return null
-	
-	print("✅ [TERRAIN V2] Máscara carregada: ", path, " (", image.get_size(), ")")
-	return image
-
-func _apply_texture_mask(center_position: Vector2, texture_mask: Image):
-	"""Aplica textura de fundo da cratera (grass-hole.png)"""
-	
-	var mask_size = texture_mask.get_size()
 	var terrain_size = terrain_image.get_size()
 	
-	# Calcula área de aplicação (centralizada)
-	var start_pos = Vector2(
+	# Área ao redor do centro
+	var half_size = mask_size / 2
+	var start_x = max(0, int(center_position.x - half_size.x))
+	var start_y = max(0, int(center_position.y - half_size.y))
+	var end_x = min(terrain_size.x, int(center_position.x + half_size.x))
+	var end_y = min(terrain_size.y, int(center_position.y + half_size.y))
+	
+	var area = Rect2i(start_x, start_y, end_x - start_x, end_y - start_y)
+	print("📐 [TERRAIN OPT] Área de processamento: ", area, " (", area.size.x * area.size.y, " pixels)")
+	
+	return area
+
+func _apply_texture_mask_optimized(center_position: Vector2, texture_mask: Image, processing_area: Rect2i):
+	"""Aplica textura de fundo com área limitada - SÓ onde já havia terreno"""
+	
+	var mask_size = texture_mask.get_size()
+	var mask_start = Vector2(
 		center_position.x - mask_size.x / 2,
 		center_position.y - mask_size.y / 2
 	)
 	
-	print("🎨 [TERRAIN V2] Aplicando textura de fundo...")
-	print("   Centro: ", center_position, " | Máscara: ", mask_size)
+	print("🎨 [TERRAIN OPT] Aplicando textura na área ", processing_area.size)
 	
-	# Aplica pixel por pixel
-	for mask_y in range(mask_size.y):
-		for mask_x in range(mask_size.x):
-			var terrain_x = int(start_pos.x + mask_x)
-			var terrain_y = int(start_pos.y + mask_y)
+	var pixels_processed = 0
+	var pixels_skipped = 0
+	
+	# Só processa pixels dentro da área otimizada
+	for terrain_y in range(processing_area.position.y, processing_area.position.y + processing_area.size.y):
+		for terrain_x in range(processing_area.position.x, processing_area.position.x + processing_area.size.x):
+			# Calcula posição correspondente na máscara
+			var mask_x = int(terrain_x - mask_start.x)
+			var mask_y = int(terrain_y - mask_start.y)
 			
-			# Verifica limites do terreno
-			if terrain_x < 0 or terrain_x >= terrain_size.x or terrain_y < 0 or terrain_y >= terrain_size.y:
+			# Verifica se está dentro da máscara
+			if mask_x < 0 or mask_x >= mask_size.x or mask_y < 0 or mask_y >= mask_size.y:
 				continue
 			
 			# Pega pixel da máscara
 			var mask_pixel = texture_mask.get_pixel(mask_x, mask_y)
 			
-			# Se pixel da máscara não é transparente, aplica
+			# Se pixel da máscara não é transparente, verifica se pode aplicar
 			if mask_pixel.a > 0.1:
-				terrain_image.set_pixel(terrain_x, terrain_y, mask_pixel)
+				# 🔥 NOVO: Só aplica SE já havia terreno ali antes
+				var existing_pixel = terrain_image.get_pixel(terrain_x, terrain_y)
+				
+				if existing_pixel.a > 0.1:  # Se não é transparente/ar
+					terrain_image.set_pixel(terrain_x, terrain_y, mask_pixel)
+					pixels_processed += 1
+				else:
+					pixels_skipped += 1  # Pulou porque era ar/transparente
+	
+	print("✅ [TERRAIN OPT] Textura aplicada: ", pixels_processed, " pixels (", pixels_skipped, " pulados por serem ar)")
 
-func _apply_hole_mask(center_position: Vector2, hole_mask: Image):
-	"""Remove buraco usando máscara preta (hole-crater.png)"""
+func _apply_hole_mask_optimized(center_position: Vector2, hole_mask: Image, processing_area: Rect2i):
+	"""Remove buraco com área limitada"""
 	
 	var mask_size = hole_mask.get_size()
-	var terrain_size = terrain_image.get_size()
-	
-	# Calcula área de aplicação (centralizada)
-	var start_pos = Vector2(
+	var mask_start = Vector2(
 		center_position.x - mask_size.x / 2,
 		center_position.y - mask_size.y / 2
 	)
 	
-	print("🕳️ [TERRAIN V2] Removendo buraco...")
-	print("   Centro: ", center_position, " | Máscara: ", mask_size)
+	print("🕳️ [TERRAIN OPT] Removendo buraco na área ", processing_area.size)
 	
-	# Remove pixel por pixel
-	for mask_y in range(mask_size.y):
-		for mask_x in range(mask_size.x):
-			var terrain_x = int(start_pos.x + mask_x)
-			var terrain_y = int(start_pos.y + mask_y)
+	var pixels_removed = 0
+	
+	# Só processa pixels dentro da área otimizada
+	for terrain_y in range(processing_area.position.y, processing_area.position.y + processing_area.size.y):
+		for terrain_x in range(processing_area.position.x, processing_area.position.x + processing_area.size.x):
+			# Calcula posição correspondente na máscara
+			var mask_x = int(terrain_x - mask_start.x)
+			var mask_y = int(terrain_y - mask_start.y)
 			
-			# Verifica limites do terreno
-			if terrain_x < 0 or terrain_x >= terrain_size.x or terrain_y < 0 or terrain_y >= terrain_size.y:
+			# Verifica se está dentro da máscara
+			if mask_x < 0 or mask_x >= mask_size.x or mask_y < 0 or mask_y >= mask_size.y:
 				continue
 			
 			# Pega pixel da máscara
@@ -194,19 +267,27 @@ func _apply_hole_mask(center_position: Vector2, hole_mask: Image):
 				terrain_image.set_pixel(terrain_x, terrain_y, Color.TRANSPARENT)
 				# Remove do bitmap (colisão)
 				terrain_bitmap.set_bit(terrain_x, terrain_y, false)
+				pixels_removed += 1
+	
+	print("✅ [TERRAIN OPT] Buraco removido: ", pixels_removed, " pixels")
 
 func _is_black_pixel(pixel: Color) -> bool:
 	"""Verifica se pixel é considerado preto (para remoção)"""
 	
-	# Considera preto se RGB são baixos e alpha é alto
 	var brightness = (pixel.r + pixel.g + pixel.b) / 3.0
 	return brightness < 0.2 and pixel.a > 0.5
 
 # ===== MÉTODOS LEGADOS (compatibilidade) =====
+func apply_crater_masks(position: Vector2, hole_mask_path: String, texture_mask_path: String):
+	"""Método não-otimizado mantido para compatibilidade"""
+	
+	print("⚠️ [TERRAIN OPT] Usando método não-otimizado - considere usar apply_crater_masks_optimized()")
+	apply_crater_masks_optimized(position, hole_mask_path, texture_mask_path)
+
 func create_crater_at_position(world_position: Vector2, radius: float = 40.0):
 	"""Método antigo mantido para compatibilidade"""
 	
-	print("⚠️ [TERRAIN V2] Usando método legado - considere migrar para apply_crater_masks()")
+	print("⚠️ [TERRAIN OPT] Usando método circular legado")
 	
 	var sprite_size = terrain_sprite.texture.get_size()
 	var bitmap_position = world_position + sprite_size / 2.0
