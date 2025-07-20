@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://b14xutrctdyd3"]
+
+[ext_resource type="Texture2D" uid="uid://0ftnswplmib3" path="res://Sprites/Background/initial-map.png" id="1_2orcd"]
+[ext_resource type="Script" uid="uid://c0kh51niogr7v" path="res://Scripts/Terrain/terrain_bitmap.gd" id="1_i5u1d"]
+
+[node name="TerrainContainer" type="Node2D"]
+
+[node name="TerrainBitmap" type="StaticBody2D" parent="." groups=["terrain"]]
+collision_mask = 8
+script = ExtResource("1_i5u1d")
+
+[node name="TerrainSprite" type="Sprite2D" parent="TerrainBitmap"]
+texture = ExtResource("1_2orcd")
+
+[node name="TerrainCollision" type="CollisionPolygon2D" parent="TerrainBitmap"]

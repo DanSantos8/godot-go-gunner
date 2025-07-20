@@ -5,9 +5,10 @@ var current_projectile: RigidBody2D = null
 
 # powerups - buffs
 var powerup_queue: Array = []
-var pool_size = 0
+var pool_size: int = 0
 # TODO refactor to work as burst_projectiles
 var trident_projectiles: bool = false
+var projectile_base_damage: int = 0
 
 func _ready() -> void:
 	MessageBus.projectile_launched.connect(_execute_powered_shot)
@@ -21,8 +22,10 @@ func _execute_powered_shot(shooter: Player, shooting_setup: ShootingSetup):
 	var position = shooting_setup.position
 	var facing_left = shooter.animated_sprite.flip_h if shooter else false
 	
+	projectile_base_damage = _calculate_base_damage(shooter.player_stats.base_damage)
 	var additional_projectiles = _calculate_additional_projectiles()
 	pool_size = additional_projectiles * 3 if trident_projectiles else additional_projectiles
+	
 	for projectile in range(additional_projectiles):
 		current_projectile = create_projectile(position, deg_to_rad(angle), power, facing_left, shooter)
 		await get_tree().create_timer(1).timeout
@@ -41,6 +44,7 @@ func create_projectile(position: Vector2, angle: float, power: float, facing_lef
 			projectile.global_position = position
 			projectile.setup_shot(angles[i], powers[i], facing_left)
 			projectiles.append(projectile)
+		# TODO refactor for camera porposes
 		current_projectile = projectiles[0]
 		return current_projectile
 	
@@ -74,15 +78,26 @@ func _calculate_additional_projectiles() -> int:
 		total += powerup.additional_projectiles
 	return total
 
+func _calculate_base_damage(player_base_damage) -> float:
+	var accumulator_multiplier_damage: float = 0
+	
+	if powerup_queue.size() == 0:
+		return player_base_damage
+	
+	for powerup in powerup_queue:
+		accumulator_multiplier_damage += powerup.damage_multiplier
+	
+	return player_base_damage * accumulator_multiplier_damage / powerup_queue.size()
+	
 func _apply_damage_modifiers(base_power: float) -> float:
 	return 25.0
 	
-func _on_projectile_collision(body: String, position: Vector2):
+func _on_projectile_collision(body: String, position: Vector2, target_id: int):
 	if not body:
 		print("[Projectile Manager]: Body not indentified")
 	
 	match body:
-		"Player": MessageBus.projectile_collided_with_player.emit(25.0)
+		"Player": MessageBus.projectile_collided_with_player.emit(target_id, projectile_base_damage)
 		"Terrain": MessageBus.projectile_collided_with_terrain.emit(position)
 		_: MessageBus.projectile_destroyed.emit()
 	
