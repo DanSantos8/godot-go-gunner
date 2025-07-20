@@ -1,4 +1,4 @@
-# Scripts/terrain_bitmap.gd
+# Scripts/terrain_bitmap.gd - V2.0
 class_name TerrainBitmap extends StaticBody2D
 
 # Referencias de nodes
@@ -8,7 +8,7 @@ var terrain_collision: CollisionPolygon2D
 # Dados internos
 var terrain_bitmap: BitMap
 var terrain_image: Image
-var terrain_texture: ImageTexture
+var terrain_texture: ImageTexture 
 
 func _ready():
 	# Conecta signal de colisão do projétil
@@ -64,30 +64,159 @@ func _generate_collision():
 	terrain_collision.polygon = centered_polygon
 
 # ===== SIGNAL HANDLERS =====
-
 func _on_projectile_collision(collision_position: Vector2):
 	"""Cria cratera quando projétil colide"""
 	
 	var local_position = to_local(collision_position)
-	create_crater_at_position(local_position, 40.0)
+	
+	# Aplica crateras usando máscaras PNG
+	apply_crater_masks(
+		local_position,
+		"res://Sprites/Craters/hole-crater.png",
+		"res://Sprites/Craters/grass-hole.png"
+	)
 
-# ===== API PÚBLICA =====
+# ===== API PÚBLICA V2.0 =====
+func apply_crater_masks(position: Vector2, hole_mask_path: String, texture_mask_path: String):
+	"""Aplica cratera usando 2 máscaras PNG"""
+	
+	print("🕳️ [TERRAIN V2] Aplicando crateras com máscaras...")
+	print("   Posição: ", position)
+	print("   Hole: ", hole_mask_path)
+	print("   Texture: ", texture_mask_path)
+	
+	# Carrega as máscaras
+	var hole_mask = _load_mask_image(hole_mask_path)
+	var texture_mask = _load_mask_image(texture_mask_path)
+	
+	if not hole_mask or not texture_mask:
+		print("❌ [TERRAIN V2] Erro ao carregar máscaras!")
+		return
+	
+	# Converte posição world para bitmap coordinates
+	var sprite_size = terrain_sprite.texture.get_size()
+	var bitmap_position = position + sprite_size / 2.0
+	
+	# Aplica as máscaras na ordem correta
+	_apply_texture_mask(bitmap_position, texture_mask)  # Primeiro: textura de fundo
+	_apply_hole_mask(bitmap_position, hole_mask)        # Segundo: remove buraco
+	
+	# Atualiza textura e colisão uma vez só
+	terrain_texture.update(terrain_image)
+	_generate_collision()
+	
+	print("✅ [TERRAIN V2] Cratera aplicada com sucesso!")
 
+# ===== MÉTODOS INTERNOS V2.0 =====
+func _load_mask_image(path: String) -> Image:
+	"""Carrega e valida imagem de máscara"""
+	
+	if not ResourceLoader.exists(path):
+		print("❌ [TERRAIN V2] Arquivo não encontrado: ", path)
+		return null
+	
+	var texture = load(path) as Texture2D
+	if not texture:
+		print("❌ [TERRAIN V2] Erro ao carregar textura: ", path)
+		return null
+	
+	var image = texture.get_image()
+	if not image:
+		print("❌ [TERRAIN V2] Erro ao extrair imagem: ", path)
+		return null
+	
+	print("✅ [TERRAIN V2] Máscara carregada: ", path, " (", image.get_size(), ")")
+	return image
+
+func _apply_texture_mask(center_position: Vector2, texture_mask: Image):
+	"""Aplica textura de fundo da cratera (grass-hole.png)"""
+	
+	var mask_size = texture_mask.get_size()
+	var terrain_size = terrain_image.get_size()
+	
+	# Calcula área de aplicação (centralizada)
+	var start_pos = Vector2(
+		center_position.x - mask_size.x / 2,
+		center_position.y - mask_size.y / 2
+	)
+	
+	print("🎨 [TERRAIN V2] Aplicando textura de fundo...")
+	print("   Centro: ", center_position, " | Máscara: ", mask_size)
+	
+	# Aplica pixel por pixel
+	for mask_y in range(mask_size.y):
+		for mask_x in range(mask_size.x):
+			var terrain_x = int(start_pos.x + mask_x)
+			var terrain_y = int(start_pos.y + mask_y)
+			
+			# Verifica limites do terreno
+			if terrain_x < 0 or terrain_x >= terrain_size.x or terrain_y < 0 or terrain_y >= terrain_size.y:
+				continue
+			
+			# Pega pixel da máscara
+			var mask_pixel = texture_mask.get_pixel(mask_x, mask_y)
+			
+			# Se pixel da máscara não é transparente, aplica
+			if mask_pixel.a > 0.1:
+				terrain_image.set_pixel(terrain_x, terrain_y, mask_pixel)
+
+func _apply_hole_mask(center_position: Vector2, hole_mask: Image):
+	"""Remove buraco usando máscara preta (hole-crater.png)"""
+	
+	var mask_size = hole_mask.get_size()
+	var terrain_size = terrain_image.get_size()
+	
+	# Calcula área de aplicação (centralizada)
+	var start_pos = Vector2(
+		center_position.x - mask_size.x / 2,
+		center_position.y - mask_size.y / 2
+	)
+	
+	print("🕳️ [TERRAIN V2] Removendo buraco...")
+	print("   Centro: ", center_position, " | Máscara: ", mask_size)
+	
+	# Remove pixel por pixel
+	for mask_y in range(mask_size.y):
+		for mask_x in range(mask_size.x):
+			var terrain_x = int(start_pos.x + mask_x)
+			var terrain_y = int(start_pos.y + mask_y)
+			
+			# Verifica limites do terreno
+			if terrain_x < 0 or terrain_x >= terrain_size.x or terrain_y < 0 or terrain_y >= terrain_size.y:
+				continue
+			
+			# Pega pixel da máscara
+			var mask_pixel = hole_mask.get_pixel(mask_x, mask_y)
+			
+			# Se pixel é preto (buraco), remove do terreno
+			if _is_black_pixel(mask_pixel):
+				# Remove da imagem (visual)
+				terrain_image.set_pixel(terrain_x, terrain_y, Color.TRANSPARENT)
+				# Remove do bitmap (colisão)
+				terrain_bitmap.set_bit(terrain_x, terrain_y, false)
+
+func _is_black_pixel(pixel: Color) -> bool:
+	"""Verifica se pixel é considerado preto (para remoção)"""
+	
+	# Considera preto se RGB são baixos e alpha é alto
+	var brightness = (pixel.r + pixel.g + pixel.b) / 3.0
+	return brightness < 0.2 and pixel.a > 0.5
+
+# ===== MÉTODOS LEGADOS (compatibilidade) =====
 func create_crater_at_position(world_position: Vector2, radius: float = 40.0):
-	"""Cria cratera circular na posição especificada"""
+	"""Método antigo mantido para compatibilidade"""
+	
+	print("⚠️ [TERRAIN V2] Usando método legado - considere migrar para apply_crater_masks()")
 	
 	var sprite_size = terrain_sprite.texture.get_size()
 	var bitmap_position = world_position + sprite_size / 2.0
 	
-	# Cria e aplica cratera
 	var crater_bitmap = _create_circular_bitmap(bitmap_position, radius, terrain_bitmap.get_size())
 	_subtract_from_terrain(crater_bitmap)
 	_generate_collision()
 
-# ===== MÉTODOS INTERNOS =====
-
 func _create_circular_bitmap(center: Vector2, radius: float, bitmap_size: Vector2) -> BitMap:
-	"""Cria BitMap circular"""
+	"""Cria BitMap circular (método antigo)"""
 	
 	var crater_bitmap = BitMap.new()
 	crater_bitmap.create(bitmap_size)
@@ -100,7 +229,7 @@ func _create_circular_bitmap(center: Vector2, radius: float, bitmap_size: Vector
 	return crater_bitmap
 
 func _subtract_from_terrain(crater_bitmap: BitMap):
-	"""Remove área da cratera do terreno (visual e colisão)"""
+	"""Remove área da cratera do terreno (método antigo)"""
 	
 	var terrain_size = terrain_bitmap.get_size()
 	
@@ -110,5 +239,4 @@ func _subtract_from_terrain(crater_bitmap: BitMap):
 				terrain_bitmap.set_bit(x, y, false)
 				terrain_image.set_pixel(x, y, Color.TRANSPARENT)
 	
-	# Atualiza textura
 	terrain_texture.update(terrain_image)
