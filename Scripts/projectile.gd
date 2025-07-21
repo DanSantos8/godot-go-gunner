@@ -2,6 +2,7 @@ extends RigidBody2D
 
 @onready var sprite: AnimatedSprite2D = $ProjectileAnimation
 @onready var explosion_area: ExplosionArea = $ExplosionArea
+@export var destruction_shape: DestructionShape
 
 # Configs
 @export var explosion_radius: float = 50.0

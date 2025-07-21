@@ -92,17 +92,18 @@ func _calculate_base_damage(player_base_damage) -> float:
 func _apply_damage_modifiers(base_power: float) -> float:
 	return 25.0
 	
-func _on_projectile_collision(body: String, position: Vector2, target_id: int):
+func _on_projectile_collision(body: String, position: Vector2, target_id: int, destruction_shape: DestructionShape = null):
 	if not body:
 		print("[Projectile Manager]: Body not indentified")
-	
 	
 	match body:
 		"Player": 
 			MessageBus.projectile_collided_with_player.emit(target_id, projectile_base_damage)
 		"Terrain": 
-			MessageBus.projectile_collided_with_terrain.emit(position)
-		_: MessageBus.projectile_destroyed.emit()
+			# Passa DestructionShape para o terreno
+			MessageBus.projectile_collided_with_terrain.emit(position, destruction_shape)
+		_: 
+			MessageBus.projectile_destroyed.emit()
 	
 	pool_size = pool_size - 1
 	

@@ -43,11 +43,16 @@ func sync_terrain_collision(impact_position: Vector2):
 	"""Sincroniza criação de cratera via network"""
 	print("📡 Sincronizando colisão em: ", impact_position)
 	
-	# Emite signal genérico - ProjectileManager decide o que fazer
-	MessageBus.projectile_collision.emit("Terrain", impact_position, -1)
+	# Pega destruction_shape do projétil
+	var projectile = get_parent()
+	var destruction_shape = null
+	if projectile and projectile.has_method("get") and projectile.get("destruction_shape"):
+		destruction_shape = projectile.destruction_shape
+	
+	# Emite signal genérico com destruction_shape - ProjectileManager decide o que fazer
+	MessageBus.projectile_collision.emit("Terrain", impact_position, -1, destruction_shape)
 	
 	# Remove projétil (sincronizado)
-	var projectile = get_parent()
 	if projectile:
 		projectile.queue_free()
 
@@ -56,21 +61,26 @@ func sync_player_collision(player_id: int, impact_position: Vector2, terrain_pos
 	"""Sincroniza colisão com player via network"""
 	print("📡 Sincronizando colisão com player ID: ", player_id)
 	
-	# Emite signal genérico para player
-	MessageBus.projectile_collision.emit("Player", impact_position, player_id)
+	# Pega destruction_shape do projétil
+	var projectile = get_parent()
+	var destruction_shape = null
+	if projectile and projectile.has_method("get") and projectile.get("destruction_shape"):
+		destruction_shape = projectile.destruction_shape
 	
-	# Emite signal genérico para terreno (cratera direcional)
-	MessageBus.projectile_collision.emit("Terrain", terrain_position, -1)
+	# Emite signal genérico para player
+	MessageBus.projectile_collision.emit("Player", impact_position, player_id, destruction_shape)
+	
+	# Emite signal genérico para terreno (cratera próxima ao player)
+	MessageBus.projectile_collision.emit("Terrain", terrain_position, -1, destruction_shape)
 	
 	# Remove projétil (sincronizado)
-	var projectile = get_parent()
 	if projectile:
 		projectile.queue_free()
 
-# ===== SISTEMA DE PENETRAÇÃO =====
+# ===== SISTEMA DE PROXIMIDADE =====
 
 func _find_terrain_through_player(player: Player) -> Vector2:
-	"""Encontra terreno na direção de penetração do projétil"""
+	"""Encontra terreno próximo ao player (onde explosão faria sentido)"""
 	
 	var projectile = get_parent()
 	if not projectile:
@@ -83,38 +93,42 @@ func _find_terrain_through_player(player: Player) -> Vector2:
 		print("❌ RayCast2D não encontrado no projétil")
 		return Vector2.ZERO
 	
-	# Configura RayCast para busca de penetração
-	var penetration_direction = _get_penetration_direction()
-	var ray_start = global_position  # Ponto de impacto
-	var ray_distance = 50.0  # Máximo 50px
+	var player_position = player.global_position
 	
-	# Configura direção e distância do ray
-	raycast.target_position = penetration_direction * ray_distance
+	# Tenta múltiplas direções para encontrar terreno próximo
+	var search_directions = [
+		Vector2.DOWN,           # Prioritário: embaixo do player
+		Vector2(0.7, 0.7),      # Diagonal baixo-direita
+		Vector2(-0.7, 0.7),     # Diagonal baixo-esquerda
+		Vector2.RIGHT,          # Lateral direita
+		Vector2.LEFT,           # Lateral esquerda
+	]
+	
+	var search_distance = 40.0  # Distância curta para "proximidade"
+	
+	for direction in search_directions:
+		var terrain_hit = _raycast_in_direction(raycast, player_position, direction, search_distance)
+		if terrain_hit != Vector2.ZERO:
+			print("✅ Terreno encontrado próximo ao player: ", terrain_hit, " (direção: ", direction, ")")
+			return terrain_hit
+	
+	print("⚠️ Nenhum terreno próximo encontrado, usando fallback")
+	# Fallback: posição embaixo do player
+	return player_position + Vector2(0, 25)
+
+func _raycast_in_direction(raycast: RayCast2D, start_pos: Vector2, direction: Vector2, distance: float) -> Vector2:
+	"""Faz raycast em uma direção específica"""
+	
+	# Posiciona raycast no ponto de start
+	raycast.global_position = start_pos
+	raycast.target_position = direction * distance
 	raycast.enabled = true
 	raycast.force_raycast_update()
 	
 	if raycast.is_colliding():
-		var hit_position = raycast.get_collision_point()
-		print("✅ RayCast encontrou terreno em: ", hit_position)
-		return hit_position
+		return raycast.get_collision_point()
 	else:
-		print("⚠️ RayCast não encontrou terreno em 50px")
-		# Fallback: Posição estimada baseada na direção
-		return ray_start + (penetration_direction * 30.0)
-
-func _get_penetration_direction() -> Vector2:
-	"""Calcula direção de penetração do projétil"""
-	
-	var projectile = get_parent()
-	if not projectile:
-		return Vector2.DOWN  # Fallback para baixo
-	
-	# Usa velocidade do projétil para determinar direção
-	var velocity = projectile.linear_velocity
-	if velocity.length() > 0:
-		return velocity.normalized()
-	else:
-		return Vector2.DOWN  # Fallback para baixo
+		return Vector2.ZERO
 
 # ===== UTILITY METHODS =====
 

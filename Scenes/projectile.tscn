@@ -1,8 +1,16 @@
-[gd_scene load_steps=9 format=3 uid="uid://qylr5iaon7m6"]
+[gd_scene load_steps=11 format=3 uid="uid://qylr5iaon7m6"]
 
 [ext_resource type="Script" uid="uid://bo4qkjowyoc6j" path="res://Scripts/projectile.gd" id="1_yr2qt"]
+[ext_resource type="Script" uid="uid://b272pqbl2kfi1" path="res://Resources/Projectile/destruction_shape.gd" id="2_d4467"]
 [ext_resource type="Texture2D" uid="uid://ccrx1s7dw7l0u" path="res://Sprites/Weapons/all.png" id="2_tl4hk"]
 [ext_resource type="Script" uid="uid://cdr2wuqpym887" path="res://Scripts/explosion_area.gd" id="3_tl4hk"]
+
+[sub_resource type="Resource" id="Resource_e1077"]
+script = ExtResource("2_d4467")
+shape_type = 2
+size = Vector2(30, 15)
+burn_multiplier = 1.5
+metadata/_custom_type_script = "uid://b272pqbl2kfi1"
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_jlqi0"]
 atlas = ExtResource("2_tl4hk")
@@ -39,6 +47,7 @@ properties/2/replication_mode = 1
 collision_layer = 2
 collision_mask = 9
 script = ExtResource("1_yr2qt")
+destruction_shape = SubResource("Resource_e1077")
 
 [node name="ProjectileAnimation" type="AnimatedSprite2D" parent="."]
 position = Vector2(9.53674e-07, 9.53674e-07)
