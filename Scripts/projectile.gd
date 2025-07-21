@@ -15,6 +15,7 @@ signal projectile_destroyed
 
 func _ready() -> void:
 	angular_velocity = spin_speed
+	# incorrect approach
 	# MessageBus.projectile_destroyed.connect(_destroy_projectile)
 	
 	# Monitor para sair da tela
@@ -54,19 +55,3 @@ func _on_screen_exited():
 
 func _destroy_projectile():
 	queue_free()
-
-# ===== PHYSICS OVERRIDE =====
-
-func _integrate_forces(state):
-	# Verifica se velocidade está muito baixa (projétil "parado")
-	if linear_velocity.length() < 10.0 and not has_collided:
-		print("🎯 [PROJECTILE] Velocidade muito baixa - forçando destruição")
-		call_deferred("_handle_low_velocity")
-
-func _handle_low_velocity():
-	if has_collided:
-		return
-	
-	has_collided = true
-	MessageBus.emit_projectile_collision("low_velocity", global_position, null)
-	_destroy_projectile()

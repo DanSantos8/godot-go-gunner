@@ -1,7 +1,6 @@
 [gd_scene load_steps=14 format=3 uid="uid://bdcpi0ubabcmf"]
 
 [ext_resource type="Script" uid="uid://bapnr58di4w2a" path="res://Scripts/Battle/battle.gd" id="1_1v1nj"]
-[ext_resource type="PackedScene" uid="uid://dulb6a3l1dgo2" path="res://Scenes/terrain.tscn" id="2_2cush"]
 [ext_resource type="Script" uid="uid://7yo73702r1oo" path="res://Scripts/Battle/battle_state_machine.gd" id="5_csrox"]
 [ext_resource type="PackedScene" uid="uid://qylr5iaon7m6" path="res://Scenes/projectile.tscn" id="6_csrox"]
 [ext_resource type="Script" uid="uid://c8fmg1ydeppkq" path="res://Scripts/Battle/states/setup_state.gd" id="6_g2joa"]
@@ -13,14 +12,13 @@
 [ext_resource type="Script" uid="uid://c2euryxsnw0s" path="res://Scripts/turn_timer_hud.gd" id="12_2cush"]
 [ext_resource type="Script" uid="uid://blwckxoklavfn" path="res://Scripts/Player/HUD/powerups_feedback.gd" id="12_5pgm5"]
 [ext_resource type="Script" uid="uid://bmotx2k3mffy2" path="res://Scripts/game_over.gd" id="13_5pgm5"]
+[ext_resource type="PackedScene" uid="uid://b14xutrctdyd3" path="res://Scenes/terrain_bitmap.tscn" id="13_bx68w"]
 
 [node name="Battle" type="Node2D"]
 script = ExtResource("1_1v1nj")
 
-[node name="TerrainContainer" type="Node" parent="."]
-
-[node name="Terrain" parent="TerrainContainer" instance=ExtResource("2_2cush")]
-position = Vector2(1117, 686)
+[node name="TerrainContainer" parent="." instance=ExtResource("13_bx68w")]
+position = Vector2(575, 376)
 
 [node name="Projectile" parent="." instance=ExtResource("6_csrox")]
 position = Vector2(-457, 12)
