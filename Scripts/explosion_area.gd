@@ -3,116 +3,118 @@ class_name ExplosionArea
 
 # Configurações de explosão
 @export var explosion_radius: float = 30.0
-@export var terrain_search_distance: float = 30.0  # Reduzido!
+@export var terrain_search_distance: float = 30.0
 
 func _on_body_entered(body: Node2D) -> void:
-	"""Detecta colisões e calcula impacto no terreno"""
+	"""Detecta colisões e cria crateras no terreno"""
 	if not BattleManager.is_authority():
 		return
 	
 	print("👑 Authority processando colisão...")
 	print("[BODY DETECTADO]: ", body.name, " (", body.get_class(), ")")
 	
-	# Captura dados do projétil
-	var projectile = get_parent()
-	var impact_data = _calculate_impact_data(projectile, body)
+	var entity_type = EntityHelper.get_entity_type(body)
 	
-	var player_id = -1
-	
-	if body is Player:
-		player_id = body.network_id
-		print("🎯 Player atingido: ", body.name, " (ID: ", player_id, ")")
+	if entity_type == "Player":
+		print("🎯 Player atingido: ", body.name, " (ID: ", body.network_id, ")")
 		
-		# HÍBRIDA: Explosão no impacto + Cratera no terreno abaixo
-		var explosion_position = global_position  # Onde projétil colidiu
-		var crater_position = _find_terrain_below_player(body)  # Terreno abaixo do player
+		# Sistema de penetração - encontra terreno "atrás" do player
+		var terrain_hit_position = _find_terrain_through_player(body)
 		
-		# 1. Aplica dano no player (explosão no ponto de impacto)
-		sync_projectile_collision.rpc("Player", explosion_position, player_id)
-		
-		# 2. Cria cratera no terreno (sempre abaixo do player)
-		if crater_position != Vector2.ZERO:
-			sync_projectile_collision.rpc("Terrain", crater_position, -1)
-			print("💥 Explosão em: ", explosion_position)
-			print("🕳️ Cratera criada em: ", crater_position)
+		if terrain_hit_position != Vector2.ZERO:
+			print("🕳️ Terreno encontrado através do player em: ", terrain_hit_position)
+			
+			# Sincroniza colisão dupla: player + terreno direcional
+			sync_player_collision.rpc(body.network_id, global_position, terrain_hit_position)
 		else:
-			print("⚠️ Terreno não encontrado abaixo do player")
+			print("❌ Terreno não encontrado através do player")
+		
+	elif entity_type == "Terrain":
+		print("🌍 Terreno atingido diretamente em: ", global_position)
+		
+		# Colisão direta com terreno
+		sync_terrain_collision.rpc(global_position)
 		
 	else:
-		# Colisão com terreno ou outros objetos
-		var entity_type = EntityHelper.get_entity_type(body)
-		sync_projectile_collision.rpc(entity_type, global_position, player_id)
+		print("❓ Colisão com entidade desconhecida: ", entity_type)
 
-func _calculate_impact_data(projectile: RigidBody2D, target_body: Node2D) -> Dictionary:
-	"""Calcula dados básicos do impacto"""
+@rpc("authority", "call_local", "reliable")
+func sync_terrain_collision(impact_position: Vector2):
+	"""Sincroniza criação de cratera via network"""
+	print("📡 Sincronizando colisão em: ", impact_position)
 	
-	var impact_position = global_position
-	var impact_velocity = projectile.linear_velocity
+	# Emite signal genérico - ProjectileManager decide o que fazer
+	MessageBus.projectile_collision.emit("Terrain", impact_position, -1)
 	
-	var data = {
-		"position": impact_position,
-		"velocity": impact_velocity
-	}
-	
-	print("📊 Impact data: posição=", impact_position)
-	return data
+	# Remove projétil (sincronizado)
+	var projectile = get_parent()
+	if projectile:
+		projectile.queue_free()
 
+@rpc("authority", "call_local", "reliable")
+func sync_player_collision(player_id: int, impact_position: Vector2, terrain_position: Vector2):
+	"""Sincroniza colisão com player via network"""
+	print("📡 Sincronizando colisão com player ID: ", player_id)
+	
+	# Emite signal genérico para player
+	MessageBus.projectile_collision.emit("Player", impact_position, player_id)
+	
+	# Emite signal genérico para terreno (cratera direcional)
+	MessageBus.projectile_collision.emit("Terrain", terrain_position, -1)
+	
+	# Remove projétil (sincronizado)
+	var projectile = get_parent()
+	if projectile:
+		projectile.queue_free()
 
+# ===== SISTEMA DE PENETRAÇÃO =====
 
-func _find_terrain_below_player(player: Player) -> Vector2:
-	"""Encontra superfície do terreno próxima ao player"""
+func _find_terrain_through_player(player: Player) -> Vector2:
+	"""Encontra terreno na direção de penetração do projétil"""
 	
-	# Começa na BASE do player (pés), não no centro
-	var player_bounds = _get_player_bounds(player)
-	var player_bottom = player.global_position + Vector2(0, player_bounds.y / 2)
+	var projectile = get_parent()
+	if not projectile:
+		print("❌ Projétil não encontrado")
+		return Vector2.ZERO
 	
-	var search_start = player_bottom
-	var search_end = player_bottom + Vector2(0, terrain_search_distance)
+	# Pega RayCast2D do projétil
+	var raycast = projectile.get_node_or_null("RayCast2D")
+	if not raycast:
+		print("❌ RayCast2D não encontrado no projétil")
+		return Vector2.ZERO
 	
-	print("🔍 Procurando SUPERFÍCIE do terreno próxima ao player...")
-	print("  Player bottom: ", search_start)
-	print("  Search end: ", search_end)
+	# Configura RayCast para busca de penetração
+	var penetration_direction = _get_penetration_direction()
+	var ray_start = global_position  # Ponto de impacto
+	var ray_distance = 50.0  # Máximo 50px
 	
-	# Configura raycast para encontrar terreno
-	var space_state = get_world_2d().direct_space_state
-	var query = PhysicsRayQueryParameters2D.create(search_start, search_end)
+	# Configura direção e distância do ray
+	raycast.target_position = penetration_direction * ray_distance
+	raycast.enabled = true
+	raycast.force_raycast_update()
 	
-	# Só colide com terreno
-	query.collision_mask = 8  # Layer do terreno
-	query.exclude = [player]  # Exclui o próprio player
-	
-	var result = space_state.intersect_ray(query)
-	
-	if result.is_empty():
-		print("❌ Nenhum terreno encontrado próximo ao player")
-		# Fallback: cria próximo aos pés do player
-		return search_start + Vector2(0, 10)
-	
-	var terrain_surface = result.position
-	print("✅ Superfície do terreno encontrada em: ", terrain_surface)
-	print("  Distância do player: ", terrain_surface.distance_to(player.global_position))
-	
-	return terrain_surface
+	if raycast.is_colliding():
+		var hit_position = raycast.get_collision_point()
+		print("✅ RayCast encontrou terreno em: ", hit_position)
+		return hit_position
+	else:
+		print("⚠️ RayCast não encontrou terreno em 50px")
+		# Fallback: Posição estimada baseada na direção
+		return ray_start + (penetration_direction * 30.0)
 
-func _get_player_bounds(player: Player) -> Vector2:
-	"""Pega dimensões aproximadas do player"""
+func _get_penetration_direction() -> Vector2:
+	"""Calcula direção de penetração do projétil"""
 	
-	# Tenta pegar do CollisionShape2D
-	var collision_shape = player.get_node_or_null("CollisionShape2D")
-	if collision_shape and collision_shape.shape:
-		var shape = collision_shape.shape
-		
-		if shape is CapsuleShape2D:
-			return Vector2(shape.radius * 2, shape.height)
-		elif shape is RectangleShape2D:
-			return shape.size
-		elif shape is CircleShape2D:
-			var radius = shape.radius
-			return Vector2(radius * 2, radius * 2)
+	var projectile = get_parent()
+	if not projectile:
+		return Vector2.DOWN  # Fallback para baixo
 	
-	# Fallback: tamanho padrão
-	print("⚠️ Usando tamanho padrão do player")
-	return Vector2(16, 32)  # Tamanho típico de character
+	# Usa velocidade do projétil para determinar direção
+	var velocity = projectile.linear_velocity
+	if velocity.length() > 0:
+		return velocity.normalized()
+	else:
+		return Vector2.DOWN  # Fallback para baixo
 
 # ===== UTILITY METHODS =====
 
@@ -122,12 +124,3 @@ func get_explosion_stats() -> Dictionary:
 		"explosion_radius": explosion_radius,
 		"terrain_search_distance": terrain_search_distance
 	}
-
-@rpc("authority", "call_local", "reliable")
-func sync_projectile_collision(body_name: String, position: Vector2, player_id: int):
-	"""Sincroniza colisão via network"""
-	MessageBus.projectile_collision.emit(body_name, position, player_id)
-	
-	var projectile = get_parent()
-	if projectile:
-		projectile.queue_free()

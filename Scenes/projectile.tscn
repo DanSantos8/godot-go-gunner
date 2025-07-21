@@ -59,4 +59,7 @@ shape = SubResource("CircleShape2D_d4467")
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_tl4hk")
 
+[node name="RayCast2D" type="RayCast2D" parent="."]
+target_position = Vector2(50, 0)
+
 [connection signal="body_entered" from="ExplosionArea" to="ExplosionArea" method="_on_body_entered"]

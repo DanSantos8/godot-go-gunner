@@ -153,8 +153,8 @@ func _update_terrain():
 	# Atualiza textura visual
 	terrain_texture.update(terrain_image)
 	
-	# Regenera colisão
-	_generate_collision()
+	# Regenera colisão (deferred para evitar physics flush)
+	call_deferred("_generate_collision")
 
 # ===== SIGNAL HANDLERS =====
 
@@ -163,20 +163,20 @@ func _on_projectile_collision(collision_position: Vector2):
 	
 	var local_position = to_local(collision_position)
 	
-	# Adiciona na queue
-	crater_queue.add_crater_request(local_position, 30.0, 45.0)
+	# Cratera menor: hole=15px, burn=25px
+	crater_queue.add_crater_request(local_position, 15.0, 25.0)
 
 # ===== TESTE DE CRATERAS (COMENTADO) =====
 
-func _test_procedural_craters():
-	"""Teste: Cria algumas crateras procedurais usando a CraterQueue"""
-	
-	await get_tree().create_timer(1.0).timeout
-	
-	# Crateras dentro da área visível do terreno
-	crater_queue.add_crater_request(Vector2(-300, -50), 25.0, 40.0)
-	crater_queue.add_crater_request(Vector2(300, -50), 35.0, 55.0)
-	crater_queue.add_crater_request(Vector2(0, 50), 50.0, 75.0)
+# func _test_procedural_craters():
+# 	"""Teste: Cria algumas crateras procedurais usando a CraterQueue"""
+# 	
+# 	await get_tree().create_timer(1.0).timeout
+# 	
+# 	# Crateras dentro da área visível do terreno
+# 	crater_queue.add_crater_request(Vector2(-300, -50), 25.0, 40.0)
+# 	crater_queue.add_crater_request(Vector2(300, -50), 35.0, 55.0)
+# 	crater_queue.add_crater_request(Vector2(0, 50), 50.0, 75.0)
 
 # func _on_test_finished():
 # 	"""Chamado quando todas as crateras de teste foram processadas"""
