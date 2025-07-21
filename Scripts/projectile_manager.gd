@@ -96,9 +96,12 @@ func _on_projectile_collision(body: String, position: Vector2, target_id: int):
 	if not body:
 		print("[Projectile Manager]: Body not indentified")
 	
+	
 	match body:
-		"Player": MessageBus.projectile_collided_with_player.emit(target_id, projectile_base_damage)
-		"Terrain": MessageBus.projectile_collided_with_terrain.emit(position)
+		"Player": 
+			MessageBus.projectile_collided_with_player.emit(target_id, projectile_base_damage)
+		"Terrain": 
+			MessageBus.projectile_collided_with_terrain.emit(position)
 		_: MessageBus.projectile_destroyed.emit()
 	
 	pool_size = pool_size - 1

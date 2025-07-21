@@ -15,6 +15,7 @@ signal projectile_destroyed
 
 func _ready() -> void:
 	angular_velocity = spin_speed
+	# incorrect approach
 	# MessageBus.projectile_destroyed.connect(_destroy_projectile)
 	
 	# Monitor para sair da tela
