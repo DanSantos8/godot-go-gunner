@@ -1,155 +1,183 @@
-# Scripts/terrain_bitmap.gd - V3.0 (Refatorado com componentes)
+# Scripts/Terrain/terrain_manager.gd - V4.0 (Crateras Procedurais)
 class_name TerrainBitmap extends StaticBody2D
 
 # Referencias de nodes
-var terrain_sprite: Sprite2D
-var terrain_collision: CollisionPolygon2D
+@onready var terrain_sprite: Sprite2D = $TerrainSprite
+@onready var terrain_collision: CollisionPolygon2D = $TerrainCollision
 
-# ===== COMPONENTS =====
-var mask_cache: MaskCache
-var crater_processor: CraterProcessor
-var terrain_renderer: TerrainRenderer
+# Dados do terreno
+var terrain_bitmap: BitMap
+var terrain_image: Image
+var terrain_texture: ImageTexture
+
+# ===== CRATER QUEUE =====
 var crater_queue: CraterQueue
-var _is_updating_texture: bool = false
 
 func _ready():
 	# Conecta signal de colisão do projétil
 	MessageBus.projectile_collided_with_terrain.connect(_on_projectile_collision)
 	
-	# Busca os nodes filhos
-	terrain_sprite = $TerrainSprite
-	terrain_collision = $TerrainCollision
-	
+	# Valida nodes filhos
 	if not terrain_sprite or not terrain_collision:
 		return
 	
-	# Inicializa componentes
-	mask_cache = MaskCache.new()
-	crater_processor = CraterProcessor.new()
-	terrain_renderer = TerrainRenderer.new()
+	# Inicializa crater queue
 	crater_queue = CraterQueue.new()
+	crater_queue.initialize(self)
 	
-	# Inicializa renderer
-	terrain_renderer.initialize(terrain_sprite, terrain_collision)
+	# Setup inicial do terreno
+	_setup_terrain_from_texture()
 	
-	# Inicializa queue com dependências
-	crater_queue.initialize(mask_cache, crater_processor, terrain_renderer)
-	
-	# Setup inicial
-	var texture = terrain_sprite.texture
-	if texture:
-		terrain_renderer.setup_from_texture(texture)
+	# 🧪 TESTE: Descomente para testar crateras
+	# _test_procedural_craters()
 
+func _setup_terrain_from_texture():
+	"""Configura terreno inicial a partir da textura"""
+	
+	var source_texture = terrain_sprite.texture
+	if not source_texture:
+		return
+	
+	# Cria dados editáveis
+	terrain_image = source_texture.get_image().duplicate()
+	terrain_texture = ImageTexture.new()
+	terrain_texture.set_image(terrain_image)
+	terrain_sprite.texture = terrain_texture
+	
+	# Cria bitmap para colisão
+	terrain_bitmap = BitMap.new()
+	terrain_bitmap.create_from_image_alpha(terrain_image, 0.1)
+	
+	# Gera colisão inicial
+	_generate_collision()
 
+func _generate_collision():
+	"""Gera CollisionPolygon2D do BitMap atual"""
+	
+	if not terrain_bitmap:
+		return
+	
+	# Converte bitmap para polígonos
+	var rect = Rect2(Vector2.ZERO, terrain_bitmap.get_size())
+	var polygons = terrain_bitmap.opaque_to_polygons(rect, 2.0)
+	
+	if polygons.is_empty():
+		return
+	
+	# Centraliza coordenadas e aplica
+	var sprite_size = terrain_sprite.texture.get_size()
+	var offset = sprite_size / 2.0
+	
+	var centered_polygon = PackedVector2Array()
+	for point in polygons[0]:
+		centered_polygon.append(point - offset)
+	
+	terrain_collision.polygon = centered_polygon
+
+# ===== CRATERAS PROCEDURAIS =====
+
+func create_circular_crater(center: Vector2, hole_radius: float, burn_radius: float = 0):
+	"""Cria cratera circular procedural com textura de explosão"""
+	
+	# Converte posição world para bitmap
+	var sprite_size = terrain_image.get_size()
+	var bitmap_center = center + sprite_size / 2.0
+	
+	# Valida se está dentro dos limites
+	if bitmap_center.x < 0 or bitmap_center.x >= sprite_size.x or bitmap_center.y < 0 or bitmap_center.y >= sprite_size.y:
+		return
+	
+	# Se não tem burn_radius, usa 150% do hole_radius
+	if burn_radius <= 0:
+		burn_radius = hole_radius * 1.5
+	
+	# Aplica cratera nos dados
+	_apply_circular_crater_to_bitmap(bitmap_center, hole_radius, burn_radius)
+	_apply_circular_crater_to_image(bitmap_center, hole_radius, burn_radius)
+	
+	# Atualiza visual e colisão
+	_update_terrain()
+
+func _apply_circular_crater_to_bitmap(center: Vector2, hole_radius: float, burn_radius: float):
+	"""Remove área circular do bitmap (para colisão)"""
+	
+	var bitmap_size = terrain_bitmap.get_size()
+	
+	# Calcula área de processamento otimizada
+	var min_x = max(0, int(center.x - burn_radius))
+	var max_x = min(bitmap_size.x, int(center.x + burn_radius))
+	var min_y = max(0, int(center.y - burn_radius))
+	var max_y = min(bitmap_size.y, int(center.y + burn_radius))
+	
+	# Remove pixels dentro do hole_radius
+	for y in range(min_y, max_y):
+		for x in range(min_x, max_x):
+			var distance = Vector2(x, y).distance_to(center)
+			
+			# Remove colisão apenas no buraco central
+			if distance <= hole_radius:
+				terrain_bitmap.set_bit(x, y, false)
+
+func _apply_circular_crater_to_image(center: Vector2, hole_radius: float, burn_radius: float):
+	"""Aplica efeito visual circular na imagem"""
+	
+	var image_size = terrain_image.get_size()
+	
+	# Calcula área de processamento otimizada
+	var min_x = max(0, int(center.x - burn_radius))
+	var max_x = min(image_size.x, int(center.x + burn_radius))
+	var min_y = max(0, int(center.y - burn_radius))
+	var max_y = min(image_size.y, int(center.y + burn_radius))
+	
+	# Cores da cratera
+	var burn_color = Color.GREEN  # Placeholder verde
+	var transparent = Color.TRANSPARENT
+	
+	# Aplica efeito por zona
+	for y in range(min_y, max_y):
+		for x in range(min_x, max_x):
+			var distance = Vector2(x, y).distance_to(center)
+			
+			if distance <= hole_radius:
+				# Zona do buraco: Transparente
+				terrain_image.set_pixel(x, y, transparent)
+			elif distance <= burn_radius:
+				# Zona de explosão: Verde (placeholder)
+				var existing_pixel = terrain_image.get_pixel(x, y)
+				if existing_pixel.a > 0.1:  # Só aplica onde já havia terreno
+					terrain_image.set_pixel(x, y, burn_color)
+
+func _update_terrain():
+	"""Atualiza visual e colisão do terreno"""
+	
+	# Atualiza textura visual
+	terrain_texture.update(terrain_image)
+	
+	# Regenera colisão
+	_generate_collision()
 
 # ===== SIGNAL HANDLERS =====
+
 func _on_projectile_collision(collision_position: Vector2):
-	"""Cria cratera quando projétil colide"""
+	"""Cria cratera quando projétil colide com terreno"""
 	
 	var local_position = to_local(collision_position)
 	
-	# Adiciona cratera na queue ao invés de processar direto
-	crater_queue.add_crater_request(
-		local_position,
-		"res://Sprites/Craters/hole-crater.png",
-		"res://Sprites/Craters/grass-hole.png"
-	)
+	# Adiciona na queue
+	crater_queue.add_crater_request(local_position, 30.0, 45.0)
 
-# ===== API PÚBLICA V3.0 (COM CRATER_QUEUE) =====
-func apply_crater_masks_optimized(position: Vector2, hole_mask_path: String, texture_mask_path: String):
-	"""Aplica cratera usando queue (método mantido para compatibilidade)"""
-	
-	print("🔄 [TERRAIN] Adicionando cratera na queue...")
-	crater_queue.add_crater_request(position, hole_mask_path, texture_mask_path)
+# ===== TESTE DE CRATERAS (COMENTADO) =====
 
-func apply_crater_masks_with_callback(position: Vector2, hole_mask_path: String, texture_mask_path: String, callback: Callable):
-	"""Nova API: aplica cratera com callback quando terminar"""
+func _test_procedural_craters():
+	"""Teste: Cria algumas crateras procedurais usando a CraterQueue"""
 	
-	print("🔄 [TERRAIN] Adicionando cratera com callback na queue...")
-	crater_queue.add_crater_request(position, hole_mask_path, texture_mask_path, callback)
+	await get_tree().create_timer(1.0).timeout
+	
+	# Crateras dentro da área visível do terreno
+	crater_queue.add_crater_request(Vector2(-300, -50), 25.0, 40.0)
+	crater_queue.add_crater_request(Vector2(300, -50), 35.0, 55.0)
+	crater_queue.add_crater_request(Vector2(0, 50), 50.0, 75.0)
 
-# ===== LEGACY PROCESSING (para casos especiais) =====
-func apply_crater_immediate(position: Vector2, hole_mask_path: String, texture_mask_path: String):
-	"""Processa cratera imediatamente (só usar em casos especiais!)"""
-	
-	if _is_updating_texture:
-		print("⚠️ [TERRAIN] Update em andamento, usando queue...")
-		apply_crater_masks_optimized(position, hole_mask_path, texture_mask_path)
-		return
-	
-	_is_updating_texture = true
-	
-	print("⚡ [TERRAIN] Processamento imediato de cratera...")
-	
-	# Carrega as máscaras do cache
-	var hole_mask = mask_cache.load_mask_image(hole_mask_path)
-	var texture_mask = mask_cache.load_mask_image(texture_mask_path)
-	
-	if not hole_mask or not texture_mask:
-		print("❌ [TERRAIN] Erro ao carregar máscaras!")
-		_is_updating_texture = false
-		return
-	
-	# Processa crateras usando renderer
-	var result = crater_processor.process_crater_masks(
-		terrain_renderer.get_terrain_image(), 
-		terrain_renderer.get_terrain_bitmap(), 
-		position, 
-		hole_mask, 
-		texture_mask
-	)
-	
-	# Atualiza visual e colisão via renderer
-	terrain_renderer.update_all()
-	
-	print("✅ [TERRAIN] Cratera imediata aplicada em ", result.processing_time_ms, "ms")
-	print("   📊 Pixels: ", result.pixels_processed, " aplicados, ", result.pixels_removed, " removidos, ", result.pixels_skipped, " pulados")
-	
-	_is_updating_texture = false
-
-# ===== MÉTODOS LEGADOS (compatibilidade) =====
-func apply_crater_masks(position: Vector2, hole_mask_path: String, texture_mask_path: String):
-	"""Método não-otimizado mantido para compatibilidade"""
-	
-	print("⚠️ [TERRAIN OPT] Usando método não-otimizado - considere usar apply_crater_masks_optimized()")
-	apply_crater_masks_optimized(position, hole_mask_path, texture_mask_path)
-
-func create_crater_at_position(world_position: Vector2, radius: float = 40.0):
-	"""Método antigo mantido para compatibilidade"""
-	
-	print("⚠️ [TERRAIN OPT] Usando método circular legado")
-	
-	var sprite_size = terrain_renderer.get_terrain_size()
-	var bitmap_position = world_position + sprite_size / 2.0
-	
-	var crater_bitmap = _create_circular_bitmap(bitmap_position, radius, terrain_renderer.get_terrain_bitmap().get_size())
-	_subtract_from_terrain(crater_bitmap)
-	terrain_renderer.update_collision()
-
-func _create_circular_bitmap(center: Vector2, radius: float, bitmap_size: Vector2) -> BitMap:
-	"""Cria BitMap circular (método antigo)"""
-	
-	var crater_bitmap = BitMap.new()
-	crater_bitmap.create(bitmap_size)
-	
-	for y in range(max(0, center.y - radius), min(bitmap_size.y, center.y + radius)):
-		for x in range(max(0, center.x - radius), min(bitmap_size.x, center.x + radius)):
-			if Vector2(x, y).distance_to(center) <= radius:
-				crater_bitmap.set_bit(x, y, true)
-	
-	return crater_bitmap
-
-func _subtract_from_terrain(crater_bitmap: BitMap):
-	"""Remove área da cratera do terreno (método antigo)"""
-	
-	var terrain_size = terrain_renderer.get_terrain_bitmap().get_size()
-	var terrain_image = terrain_renderer.get_terrain_image()
-	var terrain_bitmap = terrain_renderer.get_terrain_bitmap()
-	
-	for y in range(terrain_size.y):
-		for x in range(terrain_size.x):
-			if crater_bitmap.get_bit(x, y):
-				terrain_bitmap.set_bit(x, y, false)
-				terrain_image.set_pixel(x, y, Color.TRANSPARENT)
-	
-	terrain_renderer.update_visual()
+# func _on_test_finished():
+# 	"""Chamado quando todas as crateras de teste foram processadas"""
+# 	pass

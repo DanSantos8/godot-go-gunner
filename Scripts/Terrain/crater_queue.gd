@@ -1,45 +1,39 @@
-# Scripts/Terrain/crater_queue.gd
+# Scripts/Terrain/crater_queue.gd - V2.0 (Sistema Procedural)
 class_name CraterQueue extends RefCounted
 
-# Dados da cratera para processar
+# Dados da cratera para processar (ATUALIZADO)
 class CraterRequest:
 	var position: Vector2
-	var hole_mask_path: String
-	var texture_mask_path: String
+	var hole_radius: float
+	var burn_radius: float
 	var callback: Callable  # Chamado quando terminar
 	
-	func _init(pos: Vector2, hole_path: String, texture_path: String, cb: Callable = Callable()):
+	func _init(pos: Vector2, hole_r: float, burn_r: float = 0, cb: Callable = Callable()):
 		position = pos
-		hole_mask_path = hole_path
-		texture_mask_path = texture_path
+		hole_radius = hole_r
+		burn_radius = burn_r if burn_r > 0 else hole_r * 1.5  # Default: 150% do hole
 		callback = cb
 
 # Estado da queue
 var _queue: Array[CraterRequest] = []
 var _is_processing: bool = false
 
-# Componentes necessários (injetados)
-var mask_cache: MaskCache
-var crater_processor: CraterProcessor
-var terrain_renderer: TerrainRenderer
+# Referência ao TerrainBitmap (injetado)
+var terrain_bitmap: TerrainBitmap
 
 signal crater_processed(position: Vector2)
 signal queue_finished()
 
-func initialize(cache: MaskCache, processor: CraterProcessor, renderer: TerrainRenderer):
-	"""Inicializa queue com dependências"""
-	mask_cache = cache
-	crater_processor = processor
-	terrain_renderer = renderer
-	print("🔄 [CRATER_QUEUE] Inicializada")
+func initialize(terrain_ref: TerrainBitmap):
+	"""Inicializa queue com referência ao TerrainBitmap"""
+	terrain_bitmap = terrain_ref
+	print("🔄 [CRATER_QUEUE] Inicializada com sistema procedural")
 
-func add_crater_request(position: Vector2, hole_mask_path: String, texture_mask_path: String, callback: Callable = Callable()):
-	"""Adiciona cratera na fila"""
+func add_crater_request(position: Vector2, hole_radius: float, burn_radius: float = 0, callback: Callable = Callable()):
+	"""Adiciona cratera procedural na fila"""
 	
-	var request = CraterRequest.new(position, hole_mask_path, texture_mask_path, callback)
+	var request = CraterRequest.new(position, hole_radius, burn_radius, callback)
 	_queue.append(request)
-	
-	print("🔄 [CRATER_QUEUE] Cratera adicionada na fila (", _queue.size(), " pendentes)")
 	
 	# Se não está processando, inicia
 	if not _is_processing:
@@ -52,8 +46,6 @@ func _start_processing():
 		return
 	
 	_is_processing = true
-	print("🚀 [CRATER_QUEUE] Iniciando processamento...")
-	
 	_process_next_crater()
 
 func _process_next_crater():
@@ -64,30 +56,18 @@ func _process_next_crater():
 		return
 	
 	var request = _queue.pop_front()
-	print("🕳️ [CRATER_QUEUE] Processando cratera em ", request.position)
 	
-	# Carrega máscaras
-	var hole_mask = mask_cache.load_mask_image(request.hole_mask_path)
-	var texture_mask = mask_cache.load_mask_image(request.texture_mask_path)
-	
-	if not hole_mask or not texture_mask:
-		print("❌ [CRATER_QUEUE] Erro ao carregar máscaras, pulando...")
+	# Valida referência do terrain
+	if not terrain_bitmap:
 		_on_crater_finished(request)
 		return
 	
-	# Processa cratera
-	var result = crater_processor.process_crater_masks(
-		terrain_renderer.get_terrain_image(),
-		terrain_renderer.get_terrain_bitmap(),
+	# Cria cratera usando método procedural
+	terrain_bitmap.create_circular_crater(
 		request.position,
-		hole_mask,
-		texture_mask
+		request.hole_radius,
+		request.burn_radius
 	)
-	
-	# Atualiza visual
-	terrain_renderer.update_all()
-	
-	print("✅ [CRATER_QUEUE] Cratera processada em ", result.processing_time_ms, "ms")
 	
 	# Finaliza esta cratera
 	_on_crater_finished(request)
@@ -109,7 +89,6 @@ func _finish_processing():
 	"""Finaliza processamento da fila"""
 	
 	_is_processing = false
-	print("🏁 [CRATER_QUEUE] Fila processada completamente")
 	
 	# Emite signal de fim
 	queue_finished.emit()
@@ -128,4 +107,37 @@ func clear_queue():
 	"""Limpa fila (emergência)"""
 	_queue.clear()
 	_is_processing = false
-	print("🧹 [CRATER_QUEUE] Fila limpa")
+
+# ===== MÉTODOS DE CONVENIÊNCIA =====
+
+func add_small_crater(position: Vector2, callback: Callable = Callable()):
+	"""Conveniência: Adiciona cratera pequena"""
+	add_crater_request(position, 20.0, 30.0, callback)
+
+func add_medium_crater(position: Vector2, callback: Callable = Callable()):
+	"""Conveniência: Adiciona cratera média"""
+	add_crater_request(position, 35.0, 50.0, callback)
+
+func add_large_crater(position: Vector2, callback: Callable = Callable()):
+	"""Conveniência: Adiciona cratera grande"""
+	add_crater_request(position, 50.0, 70.0, callback)
+
+# ===== DEBUG METHODS =====
+
+func get_queue_info() -> Dictionary:
+	"""Retorna informações da fila para debug"""
+	var info = {
+		"queue_size": _queue.size(),
+		"is_processing": _is_processing,
+		"terrain_available": terrain_bitmap != null
+	}
+	
+	if not _queue.is_empty():
+		var next_crater = _queue[0]
+		info["next_crater"] = {
+			"position": next_crater.position,
+			"hole_radius": next_crater.hole_radius,
+			"burn_radius": next_crater.burn_radius
+		}
+	
+	return info
