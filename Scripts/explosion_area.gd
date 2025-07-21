@@ -1,8 +1,9 @@
 extends Area2D
 class_name ExplosionArea
 
-# Configurações de impacto
-@export var penetration_distance: float = 24.0
+# Configurações de explosão
+@export var explosion_radius: float = 30.0
+@export var terrain_search_distance: float = 30.0  # Reduzido!
 
 func _on_body_entered(body: Node2D) -> void:
 	"""Detecta colisões e calcula impacto no terreno"""
@@ -22,14 +23,20 @@ func _on_body_entered(body: Node2D) -> void:
 		player_id = body.network_id
 		print("🎯 Player atingido: ", body.name, " (ID: ", player_id, ")")
 		
-		# 1. Aplica dano no player
-		sync_projectile_collision.rpc("Player", global_position, player_id)
+		# HÍBRIDA: Explosão no impacto + Cratera no terreno abaixo
+		var explosion_position = global_position  # Onde projétil colidiu
+		var crater_position = _find_terrain_below_player(body)  # Terreno abaixo do player
 		
-		# 2. Calcula cratera no terreno
-		var crater_position = _calculate_terrain_crater_position(body, impact_data)
-		sync_projectile_collision.rpc("Terrain", crater_position, -1)
+		# 1. Aplica dano no player (explosão no ponto de impacto)
+		sync_projectile_collision.rpc("Player", explosion_position, player_id)
 		
-		print("🕳️ Cratera será criada em: ", crater_position)
+		# 2. Cria cratera no terreno (sempre abaixo do player)
+		if crater_position != Vector2.ZERO:
+			sync_projectile_collision.rpc("Terrain", crater_position, -1)
+			print("💥 Explosão em: ", explosion_position)
+			print("🕳️ Cratera criada em: ", crater_position)
+		else:
+			print("⚠️ Terreno não encontrado abaixo do player")
 		
 	else:
 		# Colisão com terreno ou outros objetos
@@ -37,40 +44,55 @@ func _on_body_entered(body: Node2D) -> void:
 		sync_projectile_collision.rpc(entity_type, global_position, player_id)
 
 func _calculate_impact_data(projectile: RigidBody2D, target_body: Node2D) -> Dictionary:
-	"""Calcula dados do impacto para usar nos cálculos"""
+	"""Calcula dados básicos do impacto"""
 	
-	var impact_velocity = projectile.linear_velocity
-	var impact_direction = impact_velocity.normalized()
 	var impact_position = global_position
+	var impact_velocity = projectile.linear_velocity
 	
 	var data = {
-		"direction": impact_direction,
-		"position": impact_position
+		"position": impact_position,
+		"velocity": impact_velocity
 	}
 	
-	print("📊 Impact data: direção=", impact_direction)
+	print("📊 Impact data: posição=", impact_position)
 	return data
 
-func _calculate_terrain_crater_position(player: Player, impact_data: Dictionary) -> Vector2:
-	"""Calcula onde criar a cratera no terreno baseado no impacto"""
+
+
+func _find_terrain_below_player(player: Player) -> Vector2:
+	"""Encontra superfície do terreno próxima ao player"""
 	
-	# 1. Pega dimensões do player
+	# Começa na BASE do player (pés), não no centro
 	var player_bounds = _get_player_bounds(player)
-	var player_radius = player_bounds.x  # Usa largura como raio aproximado
+	var player_bottom = player.global_position + Vector2(0, player_bounds.y / 2)
 	
-	# 2. Posição da cratera: player center + penetração fixa
-	var impact_direction = impact_data.direction
-	var crater_position = player.global_position + (impact_direction * penetration_distance)
+	var search_start = player_bottom
+	var search_end = player_bottom + Vector2(0, terrain_search_distance)
 	
-	# 3. Validação: verifica se posição é válida
-	var validated_pos = _validate_crater_position(crater_position, player.global_position, impact_direction)
+	print("🔍 Procurando SUPERFÍCIE do terreno próxima ao player...")
+	print("  Player bottom: ", search_start)
+	print("  Search end: ", search_end)
 	
-	print("🎯 Cálculo cratera:")
-	print("  Player radius: ", player_radius)
-	print("  Penetration distance: ", penetration_distance, " (fixo)")
-	print("  Posição final: ", validated_pos)
+	# Configura raycast para encontrar terreno
+	var space_state = get_world_2d().direct_space_state
+	var query = PhysicsRayQueryParameters2D.create(search_start, search_end)
 	
-	return validated_pos
+	# Só colide com terreno
+	query.collision_mask = 8  # Layer do terreno
+	query.exclude = [player]  # Exclui o próprio player
+	
+	var result = space_state.intersect_ray(query)
+	
+	if result.is_empty():
+		print("❌ Nenhum terreno encontrado próximo ao player")
+		# Fallback: cria próximo aos pés do player
+		return search_start + Vector2(0, 10)
+	
+	var terrain_surface = result.position
+	print("✅ Superfície do terreno encontrada em: ", terrain_surface)
+	print("  Distância do player: ", terrain_surface.distance_to(player.global_position))
+	
+	return terrain_surface
 
 func _get_player_bounds(player: Player) -> Vector2:
 	"""Pega dimensões aproximadas do player"""
@@ -92,26 +114,13 @@ func _get_player_bounds(player: Player) -> Vector2:
 	print("⚠️ Usando tamanho padrão do player")
 	return Vector2(16, 32)  # Tamanho típico de character
 
-func _validate_crater_position(calculated_pos: Vector2, player_pos: Vector2, impact_direction: Vector2) -> Vector2:
-	"""Valida e ajusta posição da cratera se necessário"""
-	
-	# Verifica se a posição está muito longe do player (sanity check)
-	var distance_from_player = calculated_pos.distance_to(player_pos)
-	if distance_from_player > penetration_distance * 2:
-		print("⚠️ Posição muito longe, ajustando...")
-		return player_pos + (impact_direction * penetration_distance)
-	
-	# TODO: verificar se realmente tem terreno na posição
-	# Por enquanto, confia na posição calculada
-	
-	return calculated_pos
-
 # ===== UTILITY METHODS =====
 
-func get_impact_stats() -> Dictionary:
-	"""Retorna estatísticas para debug"""
+func get_explosion_stats() -> Dictionary:
+	"""Retorna estatísticas da explosão para debug"""
 	return {
-		"penetration_distance": penetration_distance
+		"explosion_radius": explosion_radius,
+		"terrain_search_distance": terrain_search_distance
 	}
 
 @rpc("authority", "call_local", "reliable")
