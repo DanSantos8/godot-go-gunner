@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://dk1nnv21g0dte" path="res://Scripts/Player/impact_detection.gd" id="4_d4467"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_a5nw3"]
-radius = 8.06226
+radius = 6.08276
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_jlqi0"]
 atlas = ExtResource("2_tl4hk")
@@ -24,7 +24,7 @@ animations = [{
 }]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_d4467"]
-radius = 28.0
+radius = 22.0
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_tl4hk"]
 properties/0/path = NodePath(".:position")
@@ -38,9 +38,10 @@ properties/2/spawn = true
 properties/2/replication_mode = 1
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_e1077"]
-radius = 9.0
+radius = 6.0
 
 [node name="Projectile" type="RigidBody2D"]
+position = Vector2(-2, 0)
 collision_layer = 2
 collision_mask = 9
 script = ExtResource("1_yr2qt")
@@ -60,13 +61,14 @@ script = ExtResource("3_tl4hk")
 
 [node name="ExplosionCollision" type="CollisionShape2D" parent="ExplosionArea"]
 shape = SubResource("CircleShape2D_d4467")
+one_way_collision_margin = 0.0
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_tl4hk")
 
 [node name="ImpactDetection" type="Area2D" parent="."]
-collision_layer = 0
-collision_mask = 0
+collision_layer = 2
+collision_mask = 9
 script = ExtResource("4_d4467")
 
 [node name="ImpactCollision" type="CollisionShape2D" parent="ImpactDetection"]

@@ -1,32 +1,24 @@
 extends Area2D
 
 func _on_body_entered(body: Node2D) -> void:
-	print("[ENTROU NO BODY ENTERED]")
 	if not BattleManager.is_authority():
 		return
-	
+		
 	var projectile = get_parent()
 	var player_id = -1
 	
-	# 🔥 COLETA EXPLOSION DATA
-	var explosion_data = _collect_explosion_data()
-	
 	if body is Player:
-		player_id = body.network_id
-		print("🎯 Player atingido: ", body.name, " (ID: ", player_id, ")")
-		
-		var explosion_position = global_position
-		# 🚨 RPC COM 4 PARÂMETROS!
-		sync_projectile_collision.rpc("Player", explosion_position, player_id, explosion_data)
+		player_id = body.network_id		
+		sync_projectile_collision.rpc("Player", global_position, player_id)
+		sync_projectile_collision.rpc("Terrain", global_position, player_id)
 		
 	else:
 		var entity_type = EntityHelper.get_entity_type(body)
-		# 🚨 RPC COM 4 PARÂMETROS!
-		sync_projectile_collision.rpc(entity_type, global_position, player_id, explosion_data)
+		sync_projectile_collision.rpc(entity_type, global_position, player_id)
 
 @rpc("authority", "call_local", "reliable")
-func sync_projectile_collision(body_name: String, position: Vector2, player_id: int, explosion_data: Dictionary):
-	# 🚨 MESSAGEUS COM 4 PARÂMETROS!
+func sync_projectile_collision(body_name: String, position: Vector2, player_id: int):
+	var explosion_data = _collect_explosion_data()
 	MessageBus.projectile_collision.emit(body_name, position, player_id, explosion_data)
 	
 	var projectile = get_parent()
