@@ -77,10 +77,10 @@ func sync_player_collision(player_id: int, impact_position: Vector2, terrain_pos
 	if projectile:
 		projectile.queue_free()
 
-# ===== SISTEMA DE PROXIMIDADE =====
+# ===== SISTEMA DE PROXIMIDADE SIMPLES =====
 
 func _find_terrain_through_player(player: Player) -> Vector2:
-	"""Encontra terreno próximo ao player (onde explosão faria sentido)"""
+	"""Encontra terreno mais próximo da colisão (busca radial simples)"""
 	
 	var projectile = get_parent()
 	if not projectile:
@@ -93,33 +93,37 @@ func _find_terrain_through_player(player: Player) -> Vector2:
 		print("❌ RayCast2D não encontrado no projétil")
 		return Vector2.ZERO
 	
-	var player_position = player.global_position
+	# Ponto de colisão (onde explosão acontece)
+	var collision_point = global_position
 	
-	# Tenta múltiplas direções para encontrar terreno próximo
+	# Busca radial em 8 direções ao redor da colisão
 	var search_directions = [
-		Vector2.DOWN,           # Prioritário: embaixo do player
-		Vector2(0.7, 0.7),      # Diagonal baixo-direita
-		Vector2(-0.7, 0.7),     # Diagonal baixo-esquerda
-		Vector2.RIGHT,          # Lateral direita
-		Vector2.LEFT,           # Lateral esquerda
+		Vector2.DOWN,           # Baixo (prioritário)
+		Vector2(0.7, 0.7),      # Sudeste
+		Vector2(-0.7, 0.7),     # Sudoeste  
+		Vector2.RIGHT,          # Direita
+		Vector2.LEFT,           # Esquerda
+		Vector2(0.7, -0.7),     # Nordeste
+		Vector2(-0.7, -0.7),    # Noroeste
+		Vector2.UP              # Cima (último recurso)
 	]
 	
-	var search_distance = 40.0  # Distância curta para "proximidade"
+	var search_distance = 30.0  # Distância bem curta para proximidade
 	
 	for direction in search_directions:
-		var terrain_hit = _raycast_in_direction(raycast, player_position, direction, search_distance)
+		var terrain_hit = _raycast_in_direction(raycast, collision_point, direction, search_distance)
 		if terrain_hit != Vector2.ZERO:
-			print("✅ Terreno encontrado próximo ao player: ", terrain_hit, " (direção: ", direction, ")")
+			print("✅ Terreno próximo encontrado: ", terrain_hit, " (direção: ", direction, ")")
 			return terrain_hit
 	
-	print("⚠️ Nenhum terreno próximo encontrado, usando fallback")
-	# Fallback: posição embaixo do player
-	return player_position + Vector2(0, 25)
+	print("⚠️ Nenhum terreno próximo encontrado, usando posição embaixo do player")
+	# Fallback: direto embaixo do player
+	return player.global_position + Vector2(0, 20)
 
 func _raycast_in_direction(raycast: RayCast2D, start_pos: Vector2, direction: Vector2, distance: float) -> Vector2:
-	"""Faz raycast em uma direção específica"""
+	"""Faz raycast em uma direção específica a partir do ponto de colisão"""
 	
-	# Posiciona raycast no ponto de start
+	# Posiciona raycast no ponto de colisão (não no player)
 	raycast.global_position = start_pos
 	raycast.target_position = direction * distance
 	raycast.enabled = true
