@@ -1,8 +1,12 @@
-[gd_scene load_steps=9 format=3 uid="uid://qylr5iaon7m6"]
+[gd_scene load_steps=11 format=3 uid="uid://qylr5iaon7m6"]
 
 [ext_resource type="Script" uid="uid://bo4qkjowyoc6j" path="res://Scripts/projectile.gd" id="1_yr2qt"]
 [ext_resource type="Texture2D" uid="uid://ccrx1s7dw7l0u" path="res://Sprites/Weapons/all.png" id="2_tl4hk"]
 [ext_resource type="Script" uid="uid://cdr2wuqpym887" path="res://Scripts/explosion_area.gd" id="3_tl4hk"]
+[ext_resource type="Script" uid="uid://dk1nnv21g0dte" path="res://Scripts/Player/impact_detection.gd" id="4_d4467"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_a5nw3"]
+radius = 8.06226
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_jlqi0"]
 atlas = ExtResource("2_tl4hk")
@@ -19,10 +23,8 @@ animations = [{
 "speed": 5.0
 }]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_a5nw3"]
-radius = 5.0
-
 [sub_resource type="CircleShape2D" id="CircleShape2D_d4467"]
+radius = 28.0
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_tl4hk"]
 properties/0/path = NodePath(".:position")
@@ -35,18 +37,21 @@ properties/2/path = NodePath(".:rotation")
 properties/2/spawn = true
 properties/2/replication_mode = 1
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_e1077"]
+radius = 9.0
+
 [node name="Projectile" type="RigidBody2D"]
 collision_layer = 2
 collision_mask = 9
 script = ExtResource("1_yr2qt")
 
+[node name="ProjectileCollision" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_a5nw3")
+
 [node name="ProjectileAnimation" type="AnimatedSprite2D" parent="."]
 position = Vector2(9.53674e-07, 9.53674e-07)
 scale = Vector2(0.457447, 0.457447)
 sprite_frames = SubResource("SpriteFrames_7gowh")
-
-[node name="ProjectileCollision" type="CollisionShape2D" parent="."]
-shape = SubResource("CircleShape2D_a5nw3")
 
 [node name="ExplosionArea" type="Area2D" parent="."]
 collision_layer = 2
@@ -59,4 +64,12 @@ shape = SubResource("CircleShape2D_d4467")
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_tl4hk")
 
-[connection signal="body_entered" from="ExplosionArea" to="ExplosionArea" method="_on_body_entered"]
+[node name="ImpactDetection" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("4_d4467")
+
+[node name="ImpactCollision" type="CollisionShape2D" parent="ImpactDetection"]
+shape = SubResource("CircleShape2D_e1077")
+
+[connection signal="body_entered" from="ImpactDetection" to="ImpactDetection" method="_on_body_entered"]

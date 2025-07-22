@@ -92,7 +92,7 @@ func _calculate_base_damage(player_base_damage) -> float:
 func _apply_damage_modifiers(base_power: float) -> float:
 	return 25.0
 	
-func _on_projectile_collision(body: String, position: Vector2, target_id: int):
+func _on_projectile_collision(body: String, position: Vector2, target_id: int, explosion_data: Dictionary):
 	if not body:
 		print("[Projectile Manager]: Body not indentified")
 	

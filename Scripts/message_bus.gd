@@ -8,7 +8,7 @@ signal end_turn()
 
 
 # Projectile Collision Signals
-signal projectile_collision(collision_type: String, position: Vector2, target_id: int)
+signal projectile_collision(collision_type: String, position: Vector2, target_id: int, explosion_data: Dictionary)
 signal projectile_collided_with_player(target_id: int, damage: float)
 signal projectile_collided_with_terrain(position: Vector2)
 signal projectile_destroyed() # Unknown collisions or after applying the explosion effects
