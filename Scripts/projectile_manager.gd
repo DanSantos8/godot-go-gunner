@@ -98,8 +98,8 @@ func _on_projectile_collision(body: String, position: Vector2, target_id: int, e
 	
 	
 	match body:
-		"Player": 
-			MessageBus.projectile_collided_with_player.emit(target_id, projectile_base_damage)
+		"Player":
+			MessageBus.projectile_collided_with_player.emit(target_id, projectile_base_damage, position)
 		"Terrain": 
 			MessageBus.projectile_collided_with_terrain.emit(position, explosion_data)
 		_: MessageBus.projectile_destroyed.emit()

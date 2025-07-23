@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://bdcpi0ubabcmf"]
+[gd_scene load_steps=16 format=3 uid="uid://bdcpi0ubabcmf"]
 
 [ext_resource type="Script" uid="uid://bapnr58di4w2a" path="res://Scripts/Battle/battle.gd" id="1_1v1nj"]
 [ext_resource type="Script" uid="uid://7yo73702r1oo" path="res://Scripts/Battle/battle_state_machine.gd" id="5_csrox"]
@@ -13,6 +13,10 @@
 [ext_resource type="Script" uid="uid://blwckxoklavfn" path="res://Scripts/Player/HUD/powerups_feedback.gd" id="12_5pgm5"]
 [ext_resource type="Script" uid="uid://bmotx2k3mffy2" path="res://Scripts/game_over.gd" id="13_5pgm5"]
 [ext_resource type="PackedScene" uid="uid://b14xutrctdyd3" path="res://Scenes/terrain_bitmap.tscn" id="13_bx68w"]
+[ext_resource type="Script" uid="uid://dl4r0h3oi5xq4" path="res://Scripts/Battle/HUD/damage_amount.gd" id="13_lgt66"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5pgm5"]
+bg_color = Color(0, 0, 0, 1)
 
 [node name="Battle" type="Node2D"]
 script = ExtResource("1_1v1nj")
@@ -54,18 +58,18 @@ metadata/_custom_type_script = "uid://bbcpexojadrdx"
 [node name="PublicHUD" type="CanvasLayer" parent="."]
 script = ExtResource("12_2cush")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PublicHUD"]
+[node name="TurnBox" type="VBoxContainer" parent="PublicHUD"]
 offset_left = 419.0
 offset_top = 19.0
 offset_right = 641.0
 offset_bottom = 69.0
 
-[node name="TimerLabel" type="Label" parent="PublicHUD/VBoxContainer"]
+[node name="TimerLabel" type="Label" parent="PublicHUD/TurnBox"]
 layout_mode = 2
 text = "Remaining Time: "
 horizontal_alignment = 1
 
-[node name="PlayerTurnLabel" type="Label" parent="PublicHUD/VBoxContainer"]
+[node name="PlayerTurnLabel" type="Label" parent="PublicHUD/TurnBox"]
 layout_mode = 2
 text = "Your turn"
 horizontal_alignment = 1
@@ -110,3 +114,19 @@ text = "Play Again"
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 text = "Quit"
+
+[node name="WorldHUD" type="Node2D" parent="."]
+
+[node name="DamageAmount" type="Label" parent="WorldHUD"]
+visible = false
+custom_minimum_size = Vector2(70, 0)
+offset_left = -1.0
+offset_top = -1.0
+offset_right = 69.0
+offset_bottom = 33.0
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_5pgm5")
+horizontal_alignment = 1
+script = ExtResource("13_lgt66")

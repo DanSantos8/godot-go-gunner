@@ -66,10 +66,14 @@ func _update_collision():
 	var centered_polygon = PackedVector2Array()
 	for point in polygons[0]:
 		centered_polygon.append(point - offset)
-	
-	terrain_collision.polygon = centered_polygon
+			
+	call_deferred("_apply_collision_polygon", centered_polygon)
 	print("🔧 [TERRAIN_V2] Collision updated (", centered_polygon.size(), " points)")
 
+func _apply_collision_polygon(polygon: PackedVector2Array):
+	terrain_collision.polygon = polygon
+	print("🔧 [TERRAIN_V2] Collision updated (", polygon.size(), " points)")
+	
 func _update_visual():
 	"""Update sprite texture from current image"""
 	

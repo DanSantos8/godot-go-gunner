@@ -6,6 +6,8 @@ signal battle_event(event_type: String, data: Dictionary)
 signal projectile_launched(shooter: Player, shooting_setup: ShootingSetup)
 signal end_turn()
 
+# HUD signals
+signal damage_taken(damage_amount: float, position: Vector2)
 
 # Projectile Collision Signals
 signal projectile_collision(collision_type: String, position: Vector2, target_id: int, explosion_data: Dictionary)
@@ -17,7 +19,6 @@ signal projectiles_pool_empty()
 # Battle Manager signals
 signal turn_timer(seconds: int)
 signal game_over(winner: Player)
-
 
 ## Signals para os powerups
 signal powerup_selected(powerup_resource: PowerupResource)
