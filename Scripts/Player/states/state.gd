@@ -1,7 +1,7 @@
 class_name State extends Node
 
 var state_machine: StateMachine
-var player: CharacterBody2D
+var player: Player
 
 func init(sm: StateMachine, player_ref: CharacterBody2D):
 	state_machine = sm

@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_gak4i")
-health = 10000
+health = 2000
 stamina = 250
 attack = 300
 defense = 300

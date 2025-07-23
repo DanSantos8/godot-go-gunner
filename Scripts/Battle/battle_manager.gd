@@ -25,8 +25,8 @@ var unlocked_players: Array[Player] = []
 
 var player_scene = preload("res://Scenes/player.tscn")
 var spawn_positions: Array[Vector2] = [
-	Vector2(600, 0),   # Player 1 spawn
-	Vector2(700, 0)    # Player 2 spawn
+	Vector2(213, 333),   # Player 1 spawn
+	Vector2(888, 321)    # Player 2 spawn
 ]
 
 

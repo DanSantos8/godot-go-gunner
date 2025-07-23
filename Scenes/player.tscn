@@ -1,4 +1,4 @@
-[gd_scene load_steps=38 format=3 uid="uid://d1gje1pn4nn8r"]
+[gd_scene load_steps=40 format=3 uid="uid://d1gje1pn4nn8r"]
 
 [ext_resource type="Script" uid="uid://diu5krvdha67u" path="res://Scripts/Player/player.gd" id="1_fkybt"]
 [ext_resource type="Resource" uid="uid://8erd8tjymi68" path="res://Resources/player_resource.tres" id="2_qqcod"]
@@ -17,6 +17,7 @@
 [ext_resource type="Script" uid="uid://c13nhd5i7vqdi" path="res://Scripts/Player/states/shoot_state.gd" id="11_gymyn"]
 [ext_resource type="Script" uid="uid://hwpdb3erpnw3" path="res://Scripts/Player/states/waiting_turn_state.gd" id="12_pu2lt"]
 [ext_resource type="Script" uid="uid://54rculmy58ak" path="res://Scripts/Player/health_component.gd" id="13_ukyrk"]
+[ext_resource type="Script" uid="uid://dl4r0h3oi5xq4" path="res://Scripts/Battle/HUD/damage_amount.gd" id="18_igrcy"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_kcpg1"]
 atlas = ExtResource("2_x3wgy")
@@ -169,6 +170,9 @@ properties/3/path = NodePath("PlayerAnimation:flip_h")
 properties/3/spawn = true
 properties/3/replication_mode = 1
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fs7ks"]
+bg_color = Color(0, 0, 0, 1)
+
 [node name="Player" type="CharacterBody2D" groups=["players"]]
 collision_layer = 8
 script = ExtResource("1_fkybt")
@@ -205,7 +209,7 @@ offset_left = 28.0
 offset_top = 26.0
 offset_right = 90.0
 offset_bottom = 49.0
-text = "Angle: 0"
+text = "Angle:"
 script = ExtResource("4_8erm5")
 
 [node name="PowerbarLabel" type="Label" parent="PlayerUI"]
@@ -221,7 +225,7 @@ offset_left = 27.0
 offset_top = 86.0
 offset_right = 115.0
 offset_bottom = 109.0
-text = "Health: 100"
+text = "Health:"
 
 [node name="SidePanelPowerups" type="VBoxContainer" parent="PlayerUI"]
 offset_left = 1098.0
@@ -241,6 +245,13 @@ powerup_resource = ExtResource("8_igrcy")
 layout_mode = 2
 text = "+3"
 powerup_resource = ExtResource("9_fs7ks")
+
+[node name="StaminaLabel" type="Label" parent="PlayerUI"]
+offset_left = 28.0
+offset_top = 117.0
+offset_right = 109.0
+offset_bottom = 140.0
+text = "Stamina: "
 
 [node name="WeaponPivot" type="Node2D" parent="."]
 position = Vector2(8, 8)
@@ -281,3 +292,19 @@ script = ExtResource("13_ukyrk")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_ukyrk")
+
+[node name="WorldHUD" type="Node2D" parent="."]
+
+[node name="DamageAmount" type="Label" parent="WorldHUD"]
+visible = false
+custom_minimum_size = Vector2(70, 0)
+offset_left = -1.0
+offset_top = -1.0
+offset_right = 69.0
+offset_bottom = 33.0
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_fs7ks")
+horizontal_alignment = 1
+script = ExtResource("18_igrcy")

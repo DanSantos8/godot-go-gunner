@@ -38,15 +38,12 @@ func enter():
 		battle_manager.log_network("Broadcasting turn_started para clients...")
 		sync_turn_started.rpc(battle_manager.current_player_index, battle_manager.max_turn_time)
 	
-	# Pequena pausa para feedback visual
 	await get_tree().create_timer(1.0).timeout
 	
-	# Transita para aguardar input do player
 	log_state("Liberando controles para: " + current_player.name)
 	state_machine.change_state("waitinginput")
 
 func execute(delta: float):
-	# TurnStartState é só transição, não precisa de lógica contínua
 	pass
 
 func exit():
@@ -54,13 +51,11 @@ func exit():
 
 # ===== RPC HANDLER =====
 func _handle_turn_sync():
-	"""Executa lógica comum para authority e clients"""
 	_setup_player_states()
 	_show_turn_feedback()
 
 # ===== PLAYER STATE MANAGEMENT =====
 func _setup_player_states():
-	"""Configura states de todos os players para o turno"""
 	var current_player = get_current_player()
 	
 	for player in battle_manager.players:
@@ -70,32 +65,20 @@ func _setup_player_states():
 			_set_player_waiting_turn(player)
 
 func _ensure_player_ready_for_turn(player: Player):
-	"""Garante que o player ativo está pronto para jogar"""
 	if player.state_machine:
 		var current_state_name = player.state_machine.current_state.get_script().get_global_name()
 		if current_state_name == "WaitingTurnState":
 			player.state_machine.change_state("idle")
-		
-		log_state("Player ativo preparado: " + player.name)
-
+			
 func _set_player_waiting_turn(player: Player):
-	"""Coloca player em WaitingTurnState"""
 	if player.state_machine:
 		player.state_machine.change_state("waitingturn")
-		log_state("Player em waiting: " + player.name)
 
 func _show_turn_feedback():
-	"""Mostra feedback visual de qual player está jogando"""
 	var current_player = get_current_player()
 	
-	# Emite evento para UI atualizar
 	MessageBus.emit_battle_event("turn_started", {
 		"player": current_player,
 		"player_index": battle_manager.current_player_index,
 		"player_name": current_player.name
 	})
-	
-	log_state("🎯 Turno do " + current_player.name + " (Player " + str(battle_manager.current_player_index + 1) + ")")
-
-# ===== HELPER METHODS =====
-# Métodos auxiliares podem ser adicionados aqui conforme necessário

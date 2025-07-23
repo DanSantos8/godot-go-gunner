@@ -7,7 +7,7 @@ signal projectile_launched(shooter: Player, shooting_setup: ShootingSetup)
 signal end_turn()
 
 # HUD signals
-signal damage_taken(damage_amount: float, position: Vector2)
+signal damage_taken(damage_amount: float, target_id: int)
 
 # Projectile Collision Signals
 signal projectile_collision(collision_type: String, position: Vector2, target_id: int, explosion_data: Dictionary)

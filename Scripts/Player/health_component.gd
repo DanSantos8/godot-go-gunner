@@ -49,7 +49,7 @@ func _ready():
 	_update_ui()
 
 func _take_damage(target_id: int, damage_amount: float, position: Vector2):
-	MessageBus.damage_taken.emit(damage_amount, get_parent().global_position)
+	MessageBus.damage_taken.emit(damage_amount, target_id)
 	
 	if target_id != get_parent().network_id:
 		return
