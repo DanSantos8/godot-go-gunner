@@ -1,7 +1,7 @@
 extends CanvasLayer
 
-@onready var TimerLabel: Label = $VBoxContainer/TimerLabel
-@onready var PlayerTurnLabel: Label = $VBoxContainer/PlayerTurnLabel
+@onready var TimerLabel: Label = $TurnBox/TimerLabel
+@onready var PlayerTurnLabel: Label = $TurnBox/PlayerTurnLabel
 
 func _ready():
 	MessageBus.turn_timer.connect(_update_timer_label)
